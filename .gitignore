@@ -7,6 +7,11 @@ node_modules/
 lancer-dev.cmd
 *.keystore
 *.jks
+keystore.properties
+android/keystore/
+
+# Builds
+dist/
 
 # Logs
 *.log

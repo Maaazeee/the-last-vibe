@@ -8,6 +8,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "icons": "node scripts/pwa-icons.js",
+    "release:apk": "node scripts/build-release.js",
     "cap:add": "cap add android",
     "cap:sync": "cap sync",
     "cap:open": "cap open android",

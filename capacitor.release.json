@@ -1,0 +1,11 @@
+{
+  "appId": "app.thelastvibe.tribunal",
+  "appName": "The Last Vibe",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#070312"
+  }
+}

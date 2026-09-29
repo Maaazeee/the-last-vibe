@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
 
+// Signature release : android/keystore.properties (JAMAIS committé — voir .gitignore)
+def kspFile = rootProject.file('keystore.properties')
+def ksp = new Properties()
+if (kspFile.exists()) {
+    kspFile.withInputStream { ksp.load(it) }
+}
+
 android {
     namespace "app.thelastvibe.tribunal"
     compileSdk rootProject.ext.compileSdkVersion
@@ -8,7 +15,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +23,21 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (kspFile.exists()) {
+                storeFile rootProject.file(ksp.getProperty('storeFile'))
+                storePassword ksp.getProperty('storePassword')
+                keyAlias ksp.getProperty('keyAlias')
+                keyPassword ksp.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig kspFile.exists() ? signingConfigs.release : null
         }
     }
 }
