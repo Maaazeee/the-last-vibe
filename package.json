@@ -1,6 +1,6 @@
 {
   "name": "the-last-vibe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Last Vibe — Le Tribunal du Quotidien : une plateforme sociale où l'on juge anonymement les petits crimes du quotidien.",
   "type": "commonjs",
   "main": "server.js",

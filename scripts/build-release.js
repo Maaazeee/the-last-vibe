@@ -3,7 +3,7 @@
    Build de l'APK release (signé, connecté à la prod).
    Usage : npm run release:apk
    ---------------------------------------------------------------------
-   • charge capacitor.release.json (assets locaux, pas de server.url)
+    • charge capacitor.release.json (server.url → prod Render)
    • gradlew assembleRelease (signature via android/keystore.properties)
    • copie l'APK vers dist/the-last-vibe-v<version>.apk
 ===================================================================== */
@@ -26,7 +26,7 @@ if (!process.env.ANDROID_HOME) {
 }
 if (!process.env.GRADLE_OPTS) process.env.GRADLE_OPTS = '-Djava.net.preferIPv4Stack=true';
 
-console.log('1/3 — cap sync (config release : assets locaux)…');
+console.log('1/3 — cap sync (config release : server.url → prod)…');
 // Capacitor 6 n'accepte pas --config : on swappe le fichier pendant le sync.
 const devCfg = path.join(root, 'capacitor.config.json');
 const relCfg = path.join(root, 'capacitor.release.json');
@@ -42,8 +42,8 @@ try {
 
 const synced = path.join(root, 'android', 'app', 'src', 'main', 'assets', 'capacitor.config.json');
 const syncedCfg = JSON.parse(fs.readFileSync(synced, 'utf8'));
-if (syncedCfg.server && syncedCfg.server.url) {
-  console.error('ERREUR : la config synchronisée contient encore server.url — mauvais fichier de config.');
+if (!syncedCfg.server || syncedCfg.server.url !== 'https://the-last-vibe.onrender.com') {
+  console.error('ERREUR : la config synchronisée doit pointer server.url vers https://the-last-vibe.onrender.com.');
   process.exit(1);
 }
 

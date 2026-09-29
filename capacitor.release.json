@@ -3,7 +3,7 @@
   "appName": "The Last Vibe",
   "webDir": "public",
   "server": {
-    "androidScheme": "https"
+    "url": "https://the-last-vibe.onrender.com"
   },
   "android": {
     "backgroundColor": "#070312"

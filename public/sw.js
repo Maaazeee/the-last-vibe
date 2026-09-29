@@ -12,7 +12,7 @@
    une réponse "offline" JSON pour que le front bascule en mode local.
 ===================================================================== */
 
-const CACHE = 'the-last-vibe-v4';
+const CACHE = 'the-last-vibe-v5';
 const PRECACHE = [
   '/',
   '/manifest.webmanifest',

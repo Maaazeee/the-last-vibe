@@ -745,27 +745,50 @@
       }
     }
 
-    async function bootstrap() {
-      try {
-        const res = await fetchJson('/api/bootstrap', { timeout: 2500 });
-        state.mode = 'remote';
-        state.cases = res.cases;
-        state.daily = res.daily;
-        if (res.auth) {
-          state.user = res.auth.user || null;
-          state.providers = res.auth.providers || [];
-          state.devLogin = !!res.auth.dev;
+    function localFallback() {
+      state.mode = 'local';
+      localSeed();
+      renderProfile();
+      renderStack();
+      renderDailyBanner();
+    }
+
+    async function bootstrap(quiet = false) {
+      // Fichier local ou hors-ligne : démo immédiate, aucune tentative inutile.
+      if (location.protocol === 'file:' || navigator.onLine === false) { localFallback(); return false; }
+      // Aperçu local instantané : l'utilisateur voit des cartes pendant le
+      // réveil du serveur (Render free peut mettre 25-40 s à démarrer).
+      if (!quiet) localFallback();
+      let waited = false;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await fetchJson('/api/bootstrap', { timeout: attempt === 0 ? 5000 : 35000 });
+          state.mode = 'remote';
+          state.cases = res.cases;
+          state.daily = res.daily;
+          if (res.auth) {
+            state.user = res.auth.user || null;
+            state.providers = res.auth.providers || [];
+            state.devLogin = !!res.auth.dev;
+          }
+          // Retire les votes qui ne concernaient que l'aperçu de démo.
+          state.voted = Object.fromEntries(Object.entries(state.voted).filter(([k]) => !!byId(k)));
+          persistVoted();
+          await refreshMe();
+          startLive();
+          flushQueue();
+          if (waited && !quiet) toast('🌐 Tribunal connecté.');
+          return true;
+        } catch (_) {
+          if (attempt === 0) {
+            if (!quiet) toast('⏳ Le tribunal se réveille — 2ᵉ tentative…');
+            waited = true;
+            await new Promise((r) => setTimeout(r, 1200));
+          }
         }
-        await refreshMe();
-        startLive();
-        flushQueue();
-        return true;
-      } catch (_) {
-        state.mode = 'local';
-        localSeed();
-        renderProfile();
-        return false;
       }
+      if (!quiet) toast('📴 Serveur injoignable — mode démo local.');
+      return false;
     }
 
     async function refreshMe() {
@@ -1741,6 +1764,16 @@
         qp.delete('auth_error');
         const q = qp.toString();
         history.replaceState({}, '', location.pathname + (q ? '?' + q : '') + location.hash);
+      }
+
+      // Serveur resté froid malgré les tentatives : une dernière chance plus tard.
+      if (state.mode === 'local') {
+        setTimeout(async () => {
+          if (state.mode !== 'local' || location.protocol === 'file:') return;
+          const typing = Array.from(document.querySelectorAll('input, textarea')).some((el) => el.value);
+          if (typing) return;
+          if (await bootstrap(true)) location.reload();
+        }, 45000);
       }
 
       if (targetId) setTimeout(() => openDetail(targetId), 400);
