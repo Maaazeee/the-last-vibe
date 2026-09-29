@@ -149,7 +149,16 @@ class PostgresStore {
 
   async init() {
     const { Pool } = require('pg');
-    this.pool = new Pool({ connectionString: this.connectionString });
+    // Neon/Render imposent SSL : on force si la chaîne le demande,
+    // sans vérification de certificat (hébergeurs avec CA custom).
+    const ssl = /sslmode=(require|verify-ca|verify-full)/i.test(this.connectionString)
+      ? { rejectUnauthorized: false }
+      : undefined;
+    this.pool = new Pool({
+      connectionString: this.connectionString,
+      ...(ssl ? { ssl } : {}),
+      ...( { connectionTimeoutMillis: 10000 } ),
+    });
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS cases (
         id          TEXT PRIMARY KEY,

@@ -780,28 +780,38 @@
     /* ---------------------------------------------------------------------
        7. TEMPS RÉEL (SSE + repli polling)
     --------------------------------------------------------------------- */
+    let liveES = null;
+    let livePoll = null;
+
     function startLive() {
       if (state.mode !== 'remote') return;
-      if (typeof EventSource !== 'undefined') {
-        const es = new EventSource(API_BASE + '/events');
-        es.onmessage = (ev) => {
+      if (typeof EventSource !== 'undefined' && !liveES) {
+        liveES = new EventSource(API_BASE + '/events');
+        liveES.onmessage = (ev) => {
           try {
             const msg = JSON.parse(ev.data);
             if (msg.type === 'votes') applyLiveVotes(msg.caseId, msg.guilty, msg.innocent);
           } catch (_) {}
         };
-        es.onerror = () => es.close(); // repli polling ci-dessous
+        liveES.onerror = () => {
+          // coupure (veille de l'hébergeur, réseau…) : on retente dans 8 s
+          try { liveES.close(); } catch (_) {}
+          liveES = null;
+          setTimeout(startLive, 8000);
+        };
       }
       // sécurité : polling toutes les 10 s pour le cas affiché / ouvert
-      setInterval(async () => {
-        const target = state.openCaseId ||
-          (state.view === 'tribunal' && els.cardStack.querySelector('.is-top')?.dataset.id);
-        if (!target) return;
-        try {
-          const res = await fetchJson('/api/cases/' + encodeURIComponent(target));
-          applyLiveVotes(res.case.id, res.case.guilty, res.case.innocent);
-        } catch (_) {}
-      }, 10000);
+      if (!livePoll) {
+        livePoll = setInterval(async () => {
+          const target = state.openCaseId ||
+            (state.view === 'tribunal' && els.cardStack.querySelector('.is-top')?.dataset.id);
+          if (!target) return;
+          try {
+            const res = await fetchJson('/api/cases/' + encodeURIComponent(target));
+            applyLiveVotes(res.case.id, res.case.guilty, res.case.innocent);
+          } catch (_) {}
+        }, 10000);
+      }
     }
 
     function applyLiveVotes(id, g, i) {
