@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Last Vibe — Le Tribunal du Quotidien</title>
+
+  <!-- Métadonnées sociales (partage) -->
+  <meta name="description" content="Jugez anonymement les petits crimes du quotidien. Une IA cynique rend la sentence, la communauté tranche : 🔥 Coupable ou 👑 Innocent." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="The Last Vibe" />
+  <meta property="og:title" content="The Last Vibe — Le Tribunal du Quotidien" />
+  <meta property="og:description" content="Jugez anonymement les petits crimes du quotidien." />
+  <meta property="og:image" content="/og/banner.png" />
+  <meta name="theme-color" content="#070312" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="Last Vibe" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- ============ CONFIG CLIENT (API distante pour builds Capacitor) ============ -->
+  <script src="/config.js"></script>
+
+  <!-- ============ CAPACITOR (natif) : runtime + notifications locales, UMD sans bundler ============ -->
+  <script src="/vendor/capacitor.js"></script>
+  <script src="/vendor/local-notifications.js"></script>
+
+  <!-- ============ POLICES ============ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- ============ TAILWIND (CDN) ============ -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg2: '#070312',          // noir violacé de fond
+            violet2: '#8b5cf6',
+            blue2: '#38bdf8',
+            red2: '#ff3b5c',
+            green2: '#16d987',
+            pink2: '#e879f9'
+          },
+          fontFamily: {
+            display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- ============ STYLES PERSONNALISÉS ============ -->
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: #070312;
+      color: #eceafb;
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    ::selection { background: rgba(139, 92, 246, .45); color: #fff; }
+
+    /* --- décor d'arrière-plan : halos néon + grille --- */
+    .blob {
+      position: fixed; border-radius: 50%; filter: blur(110px);
+      z-index: -1; opacity: .25; animation: blobFloat 22s ease-in-out infinite;
+    }
+    .b1 { width: 55vmax; height: 55vmax; left: -20vmax; top: -22vmax; background: #6d28d9; }
+    .b2 { width: 45vmax; height: 45vmax; right: -18vmax; top: 8vmax; background: #2563eb; animation-delay: -8s; }
+    .b3 { width: 40vmax; height: 40vmax; left: 15vmax; bottom: -24vmax; background: #e11d48; opacity: .13; animation-delay: -15s; }
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      50%      { transform: translate(6vmax,-4vmax) scale(1.12); }
+    }
+    .bg-grid {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, #000 15%, transparent 75%);
+      mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, #000 15%, transparent 75%);
+    }
+
+    /* --- utilitaires custom --- */
+    .glass {
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.09);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .grad-text {
+      background: linear-gradient(92deg, #c4b5fd, #818cf8, #38bdf8);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .32rem .8rem; border-radius: 9999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(139,92,246,.12);
+      font-size: .72rem; letter-spacing: .06em; font-weight: 600; color: #cfc9ff;
+    }
+
+    /* --- boutons de vote néon --- */
+    .btn-vote {
+      position: relative; overflow: hidden; border-radius: 1rem;
+      padding: .85rem 1rem; font-weight: 800; letter-spacing: .02em;
+      display: flex; flex-direction: column; align-items: center; gap: .1rem;
+      color: #fff; border: 1px solid rgba(255,255,255,.1);
+      transition: transform .18s ease, box-shadow .18s ease; cursor: pointer;
+    }
+    .btn-guilty {
+      background: linear-gradient(135deg, #ff2e5d, #a80f45);
+      box-shadow: 0 6px 26px -8px rgba(255,46,93,.55);
+    }
+    .btn-guilty:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 34px -8px rgba(255,46,93,.7);
+    }
+    .btn-inno {
+      background: linear-gradient(135deg, #16d987, #08724d);
+      box-shadow: 0 6px 26px -8px rgba(22,217,135,.55);
+    }
+    .btn-inno:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 34px -8px rgba(22,217,135,.7);
+    }
+    .btn-vote:disabled { cursor: default; }
+
+    /* --- barres de progression --- */
+    .pbar { height: 8px; border-radius: 9999px; background: rgba(255,255,255,.08); overflow: hidden; position: relative; }
+    .pbar > i {
+      position: absolute; inset: 0; border-radius: inherit;
+      transition: width .7s cubic-bezier(.22,1,.36,1);
+    }
+    .pbar.g > i { background: linear-gradient(90deg, #ff2e5d, #ff8a5c); }
+    .pbar.o > i { background: linear-gradient(90deg, #16d987, #7ef0c0); }
+
+    /* --- carte interactive (swipe) --- */
+    .stack { position: relative; width: min(94vw, 560px); height: min(66vh, 640px); margin: 0 auto; }
+    .stack-card {
+      position: absolute; inset: 0; border-radius: 1.5rem;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 1.5rem; overflow: hidden; will-change: transform;
+      touch-action: pan-y;
+    }
+    .stack-card.is-top { cursor: grab; z-index: 5; }
+    .stack-card.is-top.dragging { cursor: grabbing; transition: none; }
+    .stack-card.is-top:not(.dragging) { transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .35s ease, box-shadow .35s ease; }
+    .stack-card.swipe-g { box-shadow: 0 0 40px -6px rgba(22,217,135,.55), inset 0 0 30px -18px rgba(22,217,135,.5); border-color: rgba(22,217,135,.5); }
+    .stack-card.swipe-r { box-shadow: 0 0 40px -6px rgba(255,46,93,.55), inset 0 0 30px -18px rgba(255,46,93,.5); border-color: rgba(255,46,93,.5); }
+
+    /* --- navigation --- */
+    .nav-pill {
+      border: 1px solid transparent; border-radius: 9999px;
+      padding: .55rem 1rem; font-size: .84rem; font-weight: 600; color: #a9a3c4;
+      transition: all .2s ease; cursor: pointer; white-space: nowrap;
+    }
+    .nav-pill:hover { color: #fff; }
+    .nav-pill.active {
+      color: #fff;
+      background: rgba(139,92,246,.18);
+      border-color: rgba(167,139,250,.55);
+      box-shadow: 0 0 20px -4px rgba(139,92,246,.65);
+    }
+    .bottom-nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      flex: 1; padding: .5rem 0; font-size: .64rem; font-weight: 600;
+      color: #807aa3; transition: color .2s ease; cursor: pointer;
+    }
+    .bottom-nav-item span.ic { font-size: 1.3rem; filter: grayscale(1) opacity(.7); transition: all .2s ease; }
+    .bottom-nav-item.active { color: #d8d2ff; }
+    .bottom-nav-item.active span.ic { filter: none; text-shadow: 0 0 18px rgba(139,92,246,.8); }
+
+    /* --- bannière "cas du jour" --- */
+    .daily-banner {
+      background: linear-gradient(90deg, rgba(139,92,246,.16), rgba(56,189,248,.14), rgba(139,92,246,.16));
+      border: 1px solid rgba(167,139,250,.4);
+      box-shadow: 0 0 30px -8px rgba(139,92,246,.45);
+    }
+
+    /* --- réactions --- */
+    .emoji-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      border-radius: 9999px; padding: .45rem .8rem;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      font-size: .8rem; font-weight: 700; color: #cfc9ff;
+      transition: all .15s ease; cursor: pointer;
+    }
+    .emoji-btn:hover { transform: translateY(-2px); border-color: rgba(232,121,249,.5); }
+    .emoji-btn.mine {
+      background: rgba(232,121,249,.18);
+      border-color: rgba(232,121,249,.6);
+      box-shadow: 0 0 16px -4px rgba(232,121,249,.6);
+    }
+
+    /* --- animation d'entrée --- */
+    .animate-up { animation: fadeUp .5s cubic-bezier(.22,1,.36,1) both; }
+    .animate-pop { animation: pop .2s ease-out; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pop { from { transform: scale(.94); opacity: .6; } to { transform: scale(1); opacity: 1; } }
+
+    /* --- point "en direct" --- */
+    .live-dot { position: relative; width: 8px; height: 8px; border-radius: 9999px; background: #16d987; }
+    .live-dot::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 9999px;
+      border: 2px solid rgba(22,217,135,.5); animation: pingDot 1.6s ease-out infinite;
+    }
+    @keyframes pingDot { 0% { transform: scale(.5); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+
+    /* --- spinner du Juge --- */
+    .spinner {
+      width: 54px; height: 54px; border-radius: 9999px;
+      border: 3px solid rgba(139,92,246,.15);
+      border-top-color: #c4b5fd;
+      animation: spin .9s linear infinite;
+      box-shadow: 0 0 24px rgba(139,92,246,.35);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- toasts --- */
+    .toast {
+      animation: toastIn .3s ease-out; text-align: center;
+      background: rgba(24,18,48,.92);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: 9999px; padding: .68rem 1.2rem;
+      box-shadow: 0 12px 34px -10px rgba(0,0,0,.7);
+      color: #fff; font-size: .85rem; font-weight: 600;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+    /* --- scrollbar discrète --- */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,.35); border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+
+<body class="font-sans antialiased">
+
+  <!-- ======== DÉCOR DE FOND ======== -->
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="bg-grid"></div>
+
+  <!-- ======== EN-TÊTE ======== -->
+  <header class="relative z-10 mx-auto max-w-5xl px-4 pt-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="glass flex h-11 w-11 items-center justify-center rounded-2xl text-xl shadow-[0_0_24px_-4px_rgba(139,92,246,.7)]">
+          ⚖️
+        </div>
+        <div class="leading-tight">
+          <h1 class="font-display text-lg font-bold tracking-tight">
+            THE LAST <span class="grad-text">VIBE</span>
+          </h1>
+          <p class="text-[11px] text-white/40">Le Tribunal du Quotidien</p>
+        </div>
+      </div>
+
+      <div class="hidden items-center gap-2 md:flex">
+        <nav class="flex items-center gap-1">
+          <button class="nav-pill" data-nav="tribunal">🏛️ Le Tribunal</button>
+          <button class="nav-pill" data-nav="submit">✍️ Poster un cas</button>
+          <button class="nav-pill" data-nav="wall">🏆 Mur de la Honte</button>
+        </nav>
+      </div>
+
+      <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold glass text-green2/90">
+        <span class="live-dot"></span> Live
+      </span>
+    </div>
+
+    <!-- bandeau profil : streak / points / badges -->
+    <div id="profile-strip" class="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold"></div>
+  </header>
+
+  <!-- ======== CONTENU PRINCIPAL ======== -->
+  <main class="relative z-10 mx-auto max-w-5xl px-4 pb-28 pt-5 md:pb-12">
+
+    <!-- ═══════════════ VUE : LE TRIBUNAL ═══════════════ -->
+    <section id="view-tribunal" class="view">
+      <div class="mb-5 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Session en cours</p>
+        <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
+          Salut, <span class="grad-text">justicier</span>.
+        </h2>
+        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">
+          Glisse les cas vers la droite (🔥 Coupable) ou la gauche (👑 Innocent).
+          Le Juge Suprême observe et prend des notes.
+        </p>
+      </div>
+
+      <!-- Cas du jour -->
+      <div id="daily-banner" class="hidden pb-4"></div>
+
+      <!-- Compteur + reset -->
+      <div class="mb-4 flex items-center justify-between">
+        <span id="stack-counter" class="chip">⚖️ 0 cas à juger</span>
+        <button onclick="resetVotes()" class="text-xs font-medium text-white/40 underline decoration-white/20 underline-offset-4 transition hover:text-white">
+          ↺ Recommencer le jugement
+        </button>
+      </div>
+
+      <div id="card-stack" class="stack"></div>
+
+      <div class="mt-4 flex items-center justify-center gap-6 text-[11px] font-semibold uppercase tracking-widest text-white/35">
+        <span class="text-green2/80">⟵ Innocent</span>
+        <span class="opacity-40">—</span>
+        <span class="text-red2/80">Coupable ⟶</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VUE : POSTER UN CAS ═══════════════ -->
+    <section id="view-submit" class="view hidden">
+      <div class="mx-auto max-w-xl">
+        <div class="mb-6 text-center">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Appel public</p>
+          <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
+            Déposez votre <span class="grad-text">plainte</span>.
+          </h2>
+          <p class="mt-2 text-sm text-white/45">
+            Confessez votre petit crime du quotidien. Anonymat garanti*.
+          </p>
+          <p class="mt-1 text-[10px] text-white/25">*« garanti » dans le sens où on n'a pas de tiers à qui le dire.</p>
+        </div>
+
+        <div class="glass rounded-3xl p-5 sm:p-7 animate-up">
+          <label for="case-input" class="mb-2 block text-sm font-semibold text-white/70">
+            🗣️ Qu'avez-vous fait ? (ou pas fait, c'est aussi un crime)
+          </label>
+          <textarea id="case-input" maxlength="280" rows="5" spellcheck="false"
+            placeholder="Ex. : J'ai fait « oui oui » au téléphone alors que je n'écoutais RIEN de la conversation…"
+            class="glass w-full resize-none rounded-2xl border-white/10 bg-white/[0.03] p-4 text-[15px] leading-relaxed text-white outline-none transition focus:border-violet2/60 focus:shadow-[0_0_24px_-6px_rgba(139,92,246,.6)] placeholder:text-white/25"></textarea>
+
+          <div class="mt-2 flex items-center justify-between">
+            <p class="text-[11px] text-white/35">💡 Le Juge aime les détails sanglants.</p>
+            <span id="char-count" class="text-xs font-semibold text-white/40">0/280</span>
+          </div>
+
+          <button id="submit-case" onclick="submitCase(event)" type="button"
+            class="mt-5 w-full rounded-2xl bg-gradient-to-r from-violet2 to-blue2 py-3.5 font-display text-base font-bold text-white shadow-[0_10px_34px_-8px_rgba(139,92,246,.7)] transition hover:shadow-[0_14px_40px_-8px_rgba(139,92,246,.9)] active:scale-[.99]">
+            ⚖️ Saisir le Tribunal
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VUE : MUR DE LA HONTE ═══════════════ -->
+    <section id="view-wall" class="view hidden">
+      <div class="mb-6 text-center">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Palmarès hebdomadaire</p>
+        <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
+          Le <span class="grad-text">mur de la honte</span>.
+        </h2>
+        <p class="mt-2 text-sm text-white/45">
+          Les affaires les plus jugées de la semaine et leurs scores. Cliquez sur un cas pour lire la sentence.
+        </p>
+      </div>
+
+      <div class="mb-8">
+        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl">🔥 Les plus jugés</h3>
+        <div id="wall-top" class="space-y-3"></div>
+      </div>
+
+      <div class="mb-8">
+        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl">🚨 Mauvaise foi maximaliste</h3>
+        <div id="wall-shame" class="space-y-3"></div>
+      </div>
+
+      <div>
+        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl">🏆 Top Justiciers de la semaine</h3>
+        <div id="wall-contributors" class="space-y-3"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======== NAVIGATION BASSE (mobile) ======== -->
+  <nav class="glass fixed inset-x-0 bottom-0 z-40 border-t border-white/10 px-2 pb-[env(safe-area-inset-bottom)] md:hidden">
+    <div class="flex">
+      <button class="bottom-nav-item" data-nav="tribunal"><span class="ic">🏛️</span>Tribunal</button>
+      <button class="bottom-nav-item" data-nav="submit"><span class="ic">✍️</span>Poster</button>
+      <button class="bottom-nav-item" data-nav="wall"><span class="ic">🏆</span>La Honte</button>
+    </div>
+  </nav>
+
+  <!-- ======== MODAL : DÉTAIL D'UN CAS ======== -->
+  <div id="detail-overlay" class="fixed inset-0 z-50 hidden items-end justify-center sm:items-center sm:p-6">
+    <div id="detail-backdrop" onclick="closeDetail()" class="absolute inset-0 bg-black/75 backdrop-blur-sm"></div>
+
+    <div class="glass relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border-white/12 p-6 sm:max-w-lg sm:rounded-3xl sm:p-8">
+      <div class="animate-up space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <span id="dl-chips" class="chip">⚖️ Dossier</span>
+            <p id="dl-meta" class="mt-2 text-xs text-white/40"></p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="dl-shares" class="chip" title="Partages">📤 0</span>
+            <button onclick="closeDetail()" class="glass flex h-9 w-9 items-center justify-center rounded-full text-white/60 transition hover:text-white" aria-label="Fermer">✕</button>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2/80">Le crime exposé</p>
+          <p id="dl-text" class="font-display mt-2 text-xl leading-snug sm:text-2xl"></p>
+        </div>
+
+        <div class="rounded-2xl border border-violet2/25 bg-violet2/[0.06] p-4">
+          <p class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2">
+            ⚖️ Verdict du Juge Suprême
+            <span class="rounded-full bg-violet2/20 px-2 py-0.5 text-[9px] tracking-normal text-violet2">IA-X14 · confiance 98%</span>
+          </p>
+          <p id="dl-comment" class="mt-3 text-sm leading-relaxed text-white/85"></p>
+          <p class="mt-3 border-t border-white/10 pt-3 text-[10px] uppercase tracking-[0.18em] text-white/35">Moyens de preuve</p>
+          <p id="dl-crime" class="mt-1 text-xs font-semibold text-white/60"></p>
+        </div>
+
+        <div class="rounded-2xl border border-blue2/25 bg-blue2/[0.05] p-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue2">☠️ La sentence</p>
+          <p id="dl-sentence" class="mt-2 text-sm font-medium leading-relaxed text-white/90">“ <em></em> ”</p>
+        </div>
+
+        <!-- Votes -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/40">
+            <span>Le peuple a tranché</span>
+            <span id="dl-total-votes">0 voix</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button id="dl-btn-guilty" class="btn-vote btn-guilty" onclick="voteFromDetail('guilty')">
+              <span class="text-sm">🔥 Coupable</span>
+            </button>
+            <button id="dl-btn-inno" class="btn-vote btn-inno" onclick="voteFromDetail('innocent')">
+              <span class="text-sm">👑 Innocent</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="pbar g mb-1"><i id="dl-bar-guilty" style="width:50%"></i></div>
+              <p id="dl-pct-guilty" class="text-center text-xs font-bold text-red2">50%</p>
+            </div>
+            <div>
+              <div class="pbar o mb-1"><i id="dl-bar-inno" style="width:50%"></i></div>
+              <p id="dl-pct-inno" class="text-center text-xs font-bold text-green2">50%</p>
+            </div>
+          </div>
+
+          <p id="dl-voted-note" class="hidden pt-1 text-center text-xs font-semibold text-white/40">
+            ✅ Verdict enregistré. Le Juge ne revient pas dessus.
+          </p>
+        </div>
+
+        <!-- Réactions + commentaires -->
+        <div class="rounded-2xl border border-pink2/20 bg-pink2/[0.05] p-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink2">💬 Réactions du prétoire</p>
+          <div id="dl-reactions" class="mt-3 flex flex-wrap gap-2"></div>
+          <div class="mt-3 flex gap-2">
+            <input id="dl-comment-input" maxlength="140" placeholder="Une remarque cinglante (optionnelle)…"
+              class="glass min-w-0 flex-1 rounded-xl border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white outline-none transition focus:border-pink2/60 placeholder:text-white/25" />
+            <button onclick="sendComment()" class="rounded-xl bg-gradient-to-r from-violet2 to-pink2 px-4 text-xs font-bold text-white">Envoyer</button>
+          </div>
+          <div id="dl-comments" class="mt-3 space-y-2"></div>
+        </div>
+
+        <button onclick="shareCurrent()" id="dl-share-btn" class="glass w-full rounded-2xl py-3 text-sm font-semibold text-white/70 transition hover:text-white">
+          📤 Partager ce verdict
+        </button>
+        <button onclick="flagCurrent()" class="w-full py-1 text-center text-[11px] text-white/30 underline decoration-white/15 underline-offset-4 transition hover:text-white/60">
+          🚩 Signaler un cas litigieux au greffe
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== MODAL : COMPTE / CONNEXION ======== -->
+  <div id="auth-overlay" class="fixed inset-0 z-50 hidden items-end justify-center sm:items-center sm:p-6">
+    <div onclick="closeAuth()" class="absolute inset-0 bg-black/75 backdrop-blur-sm"></div>
+
+    <div class="glass relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border-white/12 p-6 sm:max-w-md sm:rounded-3xl sm:p-8">
+      <div class="animate-up space-y-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2/80">Votre compte</p>
+            <h3 class="font-display mt-1 text-xl font-bold">Le greffe vous reconnaît</h3>
+          </div>
+          <button onclick="closeAuth()" class="glass flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/60 transition hover:text-white" aria-label="Fermer">✕</button>
+        </div>
+        <div id="auth-body" class="space-y-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== OVERLAY : LE JUGE DÉLIBÈRE ======== -->
+  <div id="judge-overlay" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 backdrop-blur-md">
+    <div class="glass w-[min(92vw,320px)] rounded-3xl p-8 text-center">
+      <div class="spinner mx-auto"></div>
+      <p class="font-display mt-5 text-lg font-bold">Le Juge Suprême délibère…</p>
+      <p id="judge-phase" class="mt-2 text-sm text-white/50">Ouverture du dossier…</p>
+    </div>
+  </div>
+
+  <!-- ======== CONTENEUR DE TOASTS ======== -->
+  <div id="toast-wrap" class="pointer-events-none fixed left-1/2 top-5 z-[70] flex w-full flex-col items-center gap-2 px-4"></div>
+
+  <!-- =================== APPLICATION =================== -->
+  <script id="app">
+    'use strict';
+
+    /* =====================================================================
+       THE LAST VIBE — Le Tribunal du Quotidien
+       Front (Tailwind CDN + JS vanilla).
+       • Mode serveur  : communique avec l'API Express/PostgreSQL (votes
+         en direct via SSE, streaks, réactions, partage, modération).
+       • Mode démo     : si l'API est injoignable (fichier ouvert en local),
+         bascule automatiquement sur des données mock + logique locale.
+    ===================================================================== */
+
+    /* ---------------------------------------------------------------------
+       1. RACCOURCIS DOM
+    --------------------------------------------------------------------- */
+    const $ = (sel, el = document) => el.querySelector(sel);
+    const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
+
+    const els = {
+      cardStack: $('#card-stack'),
+      stackCounter: $('#stack-counter'),
+      charCount: $('#char-count'),
+      caseInput: $('#case-input'),
+      judgeOverlay: $('#judge-overlay'),
+      judgePhase: $('#judge-phase'),
+      toastWrap: $('#toast-wrap'),
+      profileStrip: $('#profile-strip'),
+      dailyBanner: $('#daily-banner'),
+      // modale détail
+      detailOverlay: $('#detail-overlay'),
+      dlChips: $('#dl-chips'),
+      dlMeta: $('#dl-meta'),
+      dlText: $('#dl-text'),
+      dlComment: $('#dl-comment'),
+      dlCrime: $('#dl-crime'),
+      dlSentence: $('#dl-sentence'),
+      dlTotal: $('#dl-total-votes'),
+      dlShares: $('#dl-shares'),
+      dlBtnGuilty: $('#dl-btn-guilty'),
+      dlBtnInno: $('#dl-btn-inno'),
+      dlBarGuilty: $('#dl-bar-guilty'),
+      dlBarInno: $('#dl-bar-inno'),
+      dlPctGuilty: $('#dl-pct-guilty'),
+      dlPctInno: $('#dl-pct-inno'),
+      dlVotedNote: $('#dl-voted-note'),
+      dlReactions: $('#dl-reactions'),
+      dlComments: $('#dl-comments'),
+      commentInput: $('#dl-comment-input'),
+      // mur de la honte
+      wallTop: $('#wall-top'),
+      wallShame: $('#wall-shame'),
+      wallContributors: $('#wall-contributors'),
+    };
+
+    /* ---------------------------------------------------------------------
+       2. ÉTAT GLOBAL
+    --------------------------------------------------------------------- */
+    const state = {
+      mode: 'local',     // 'remote' (API) | 'local' (démo hors-ligne)
+      cases: [],
+      voted: {},         // id → 'guilty' | 'innocent'
+      myReact: {},       // id → emoji choisi par l'utilisateur
+      reactions: {},     // id → { counts, comments }
+      daily: null,
+      me: { votes: 0, streak: 0, points: 0, badges: [] },
+      user: null,         // compte connecté (null = anonyme)
+      providers: [],      // fournisseurs OAuth configurés
+      devLogin: false,    // connexion de test activée côté serveur
+      view: 'tribunal',
+      openCaseId: null,
+    };
+
+    /* ---------------------------------------------------------------------
+       3. OUTILS
+    --------------------------------------------------------------------- */
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const abbreviate = (t, n) => (t.length > n ? t.slice(0, n - 1).trim() + '…' : t);
+    const esc = (s) => s.replace(/[&<>"']/g, (m) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
+    ));
+
+    function pctGuilty(g, i) {
+      const t = Number(g) + Number(i);
+      return t ? Math.round((Number(g) / t) * 100) : 50;
+    }
+    function totalsOf(c) {
+      return { guilty: c.guilty, innocent: c.innocent };
+    }
+    function byId(id) {
+      return state.cases.find((c) => c.id === id);
+    }
+    function timeLabel(c) {
+      if (c.time) return c.time;
+      if (!c.created_at) return 'récemment';
+      const s = Math.max(1, Math.floor((Date.now() - new Date(c.created_at).getTime()) / 1000));
+      if (s < 60) return 'à l’instant';
+      if (s < 3600) return 'il y a ' + Math.floor(s / 60) + ' min';
+      if (s < 86400) return 'il y a ' + Math.floor(s / 3600) + ' h';
+      return 'il y a ' + Math.floor(s / 86400) + ' j';
+    }
+
+    /* ---------------------------------------------------------------------
+       4. IDENTITÉ ANONYME (voter id, persistant localement)
+    --------------------------------------------------------------------- */
+    const VOTER_KEY = 'tlv_voter';
+    const VOTED_KEY = 'tlv_voted';
+
+    function setupVoter() {
+      let v = localStorage.getItem(VOTER_KEY);
+      if (!v) {
+        v = (crypto.randomUUID ? crypto.randomUUID() : uid() + uid());
+        localStorage.setItem(VOTER_KEY, v);
+      }
+      try { state.voted = JSON.parse(localStorage.getItem(VOTED_KEY) || '{}'); } catch (_) { state.voted = {}; }
+      return v;
+    }
+    function persistVoted() {
+      try { localStorage.setItem(VOTED_KEY, JSON.stringify(state.voted)); } catch (_) {}
+    }
+    function voterId() {
+      return localStorage.getItem(VOTER_KEY) || setupVoter();
+    }
+
+    /* ---------------------------------------------------------------------
+       5. MODE DÉMO (sans serveur) — données + logique locales
+    --------------------------------------------------------------------- */
+    function localSeed() {
+      const raws = [
+        { author: 'Anonyme #007', time: 'il y a 12 min', g: 312, i: 148,
+          text: 'J’ai mangé la dernière part de gâteau à minuit sans rien dire… et j’ai laissé une note anonyme à ma colocataire. La note disait : « le gâteau est parti vivre ailleurs ».',
+          verdict: { comment: 'Manger n’est pas un crime. Manger ET inventer un départ émotionnel pour un gâteau, c’est du vol avec finesse scénaristique. Vous avez l’étoffe d’un dealer de frigo.', crime: 'soustraction qualifiée d’un dessert avec récit d’exil', sentence: 'Condamné à remplacer le gâteau par un « bonjour » enrobé de culpabilité, et 48 h de jeûne médiatique.' } },
+        { author: 'Anonyme #153', time: 'il y a 47 min', g: 88, i: 491,
+          text: 'J’ai répondu « k » à un message de rupture un peu lourde. Je regrette rien. Si, je regrette de pas avoir mis la majuscule.',
+          verdict: { comment: 'Le « k » est officiellement le cimeterre de la messagerie moderne. Vous avez transformé un drame en opéra klezmer, et c’est presque élégant.', crime: 'exécution d’une relation à grands coups de touche « entrée »', sentence: '100 heures de messages avec des mots entiers. Interdiction d’utiliser le bouton entrée, sauf pour vomir son âme.' } },
+        { author: 'Anonyme #021', time: 'il y a 2 h', g: 575, i: 42,
+          text: 'J’ai laissé le micro-ondes du bureau ouvert, la lumière allumée, le plateau tournant qui tourne en attendant que « les gens se reprennent ». C’est ma déclaration de guerre personnelle.',
+          verdict: { comment: 'Laisser un micro-ondes couver son petit drame dans l’open space, c’est déclarer une guerre de basse intensité aux voisins de bureau. Sublime tacticien, terrible humain.', crime: 'levée d’un drapeau blanc du désespoir thermique', sentence: 'Interdiction de micro-ondes pendant 72 h. Vous chaufferez votre soupe au regard des collègues, ça la tiendra tiède.' } },
+        { author: 'Anonyme #334', time: 'il y a 3 h', g: 120, i: 402,
+          text: 'Je paye la salle de sport depuis 8 mois, j’y vais uniquement pour respirer dans les vestiaires après le boulot. Le cardio, c’est le va-et-vient de la porte.',
+          verdict: { comment: '99 % de planning non respecté, 100 % de l’objectif atteint : le cardio du vestiaire est accompli. On a moins affaire à un fainéant qu’à un philosophe des lieux humides.', crime: 'détournement d’abonnement au profit du calme intérieur', sentence: 'Réintégration d’office au club des « je paie pour l’éthique » pendant 6 mois, séance de vélo comprise.' } },
+        { author: 'Anonyme #089', time: 'il y a 5 h', g: 234, i: 111,
+          text: 'J’ai posté un meme sur le visage de mon boss dans un groupe privé… sauf que le groupe privé a leaké, et le meme a fait 12 000 vues. Le boss met des coeurs. J’ai peur.',
+          verdict: { comment: 'Publier votre boss en meme, c’est signer votre propre feuilleton RH. Le Tribunal rit avec vous ; il rira aussi quand les ressources humaines fermeront les volets.', crime: 'complicité de viralité avec la direction induite', sentence: 'Acquitté mais surveillé. Le Juge conserve le lien du meme. Pour… archivage.' } },
+        { author: 'Anonyme #777', time: 'il y a 6 h', g: 301, i: 256,
+          text: 'J’ai prétendu avoir appelé ma grand-mère tout le week-end. Pile le dimanche, elle appelle. J’ai scanné l’appel, disant que le réseau était mauvais, en criant : « ALLÔ ?! »',
+          verdict: { comment: 'Oser prétendre qu’on a appelé sa grand-mère ? La grand-mère, elle, rappelle. Le tribunal, lui, a la facture détaillée de ce mensonge. Personne ne ment au réseau.', crime: 'faux et usage de famille en réunion', sentence: 'Deux appels de 45 minutes à votre mamie, mise sur écoute intégrale. Et un seul sujet : vous, et pourquoi vous mentez si mal.' } },
+        { author: 'Anonyme #411', time: 'il y a 8 h', g: 88, i: 512,
+          text: 'J’ai piqué un câble USB-C au bureau « pour le prêter ». Ça fait trois semaines. Il est devenu LE câble de la maison. Je le défends les soirs comme un enfant.',
+          verdict: { comment: 'Un câble USB-C subtilisé au bureau n’est pas un larcin, c’est un phénomène naturel : les câbles se réincarnent toujours ailleurs. Vous avez simplement armé le cycle.', crime: 'prélèvement d’une ressource conductrice vitale', sentence: 'Prison préventive le temps de retrouver deux chargeurs homologués et un câble de rachat spirituel.' } },
+        { author: 'Anonyme #222', time: 'il y a 10 h', g: 418, i: 23,
+          text: 'J’ai validé une PR sans la lire. Deux bugs sont partis en production. Le lead a dit « bien joué ». Je crois qu’il parlait au monotâche de l’étagère.',
+          verdict: { comment: 'Valider une PR sans la lire, c’est le geste noble du gardien de phare qui éteint la lumière pour la forme. Deux bugs en prod, ce n’est pas une erreur, c’est un livrable signé.', crime: 'exécution d’un déploiement les yeux dans les étoiles', sentence: 'Condamné à subir la prochaine démo client en costume de licorne, moyen de preuve : humilité.' } },
+        { author: 'Anonyme #690', time: 'il y a 12 h', g: 302, i: 264,
+          text: 'J’ai écrit « je sors les poubelles » pour quitter un séminaire Teams. Les poubelles sont dans mon appart. Le séminaire était en visio. Personne n’a rien dit.',
+          verdict: { comment: 'Utiliser « je sors les poubelles » pour quitter un séminaire en visio est la preuve que l’évasion assistée par ordinateur est devenue une discipline olympique.', crime: 'faux alibi écologique en réunion', sentence: 'Peine : 2 h de back-to-back à écouter un talk intitulé « L’impact transformationnel des synergies ». En présentiel. Sans poubelles.' } },
+        { author: 'Anonyme #999', time: 'il y a 14 h', g: 665, i: 31,
+          text: 'J’ai mangé la tranche de fromage du frigo collab marquée « À personne ». C’était le seul goût de la journée. Je hurlerais le prénom du fromage si je le connaissais.',
+          verdict: { comment: 'Le fromage « À personne » du réfrigérateur collectif est le seul produit qui nourrit réellement le groupe : il teste la capacité d’abnégation des humains. Vous avez échoué, avec panache.', crime: 'défaussement de patrimoine alimentaire commun', sentence: 'Restitution par l’ouvrage : vous déposerez un fromage « À tous sauf à vous » samedi prochain, avec un mot anonyme soigneusement forgé.' } },
+      ];
+
+      state.cases = raws.map((r, i) => ({
+        id: 'c' + (i + 1),
+        author: r.author,
+        time: r.time,
+        text: r.text,
+        title: null,
+        guilty: r.g,
+        innocent: r.i,
+        base: { guilty: r.g, innocent: r.i },
+        share_count: 0,
+        verdict: r.verdict,
+      }));
+      // "cas du jour" local = le cas le plus jugé
+      state.daily = state.cases.reduce((a, b) => (b.guilty + b.innocent > a.guilty + a.innocent ? b : a));
+      state.seedCount = state.cases.length;
+      restoreLocalMe();
+    }
+
+    function restoreLocalMe() {
+      try {
+        const s = JSON.parse(localStorage.getItem('tlv_streak') || 'null');
+        const votedCount = Object.keys(state.voted).length;
+        const streak = s && s.date === new Date().toDateString() ? s.count : 0;
+        state.me = {
+          votes: Math.max(votedCount, Number(localStorage.getItem('tlv_votes') || 0)),
+          streak,
+          points: Math.max(votedCount, Number(localStorage.getItem('tlv_votes') || 0)) * 10 + Math.max(0, streak - 1) * 25,
+          badges: [],
+        };
+      } catch (_) { /* silencieux */ }
+    }
+
+    /* ---------------------------------------------------------------------
+       6. API (mode serveur) + BOOTSTRAP
+    --------------------------------------------------------------------- */
+    // Origine de l'API. Vide en web (même hôte) ; configurable via /config.js
+    // pour les builds Capacitor (aperçu natif pointant vers l'API déployée).
+    const API_BASE = (window.TLV_API_BASE || '').replace(/\/+$/, '');
+
+    async function fetchJson(url, opts = {}) {
+      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const t = setTimeout(() => ctrl && ctrl.abort(), opts.timeout || 8000);
+      try {
+        const res = await fetch(API_BASE + url, {
+          ...opts,
+          signal: ctrl ? ctrl.signal : undefined,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Voter-Id': voterId(),
+            ...(opts.headers || {}),
+          },
+        });
+        if (!res.ok) {
+          let msg = 'réponse ' + res.status;
+          try { msg = (await res.json()).error || msg; } catch (_) {}
+          throw new Error(msg || 'Erreur serveur');
+        }
+        return await res.json();
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    async function bootstrap() {
+      try {
+        const res = await fetchJson('/api/bootstrap', { timeout: 2500 });
+        state.mode = 'remote';
+        state.cases = res.cases;
+        state.daily = res.daily;
+        if (res.auth) {
+          state.user = res.auth.user || null;
+          state.providers = res.auth.providers || [];
+          state.devLogin = !!res.auth.dev;
+        }
+        await refreshMe();
+        startLive();
+        flushQueue();
+        return true;
+      } catch (_) {
+        state.mode = 'local';
+        localSeed();
+        renderProfile();
+        return false;
+      }
+    }
+
+    async function refreshMe() {
+      try {
+        const me = await fetchJson('/api/me');
+        state.me = me;
+        if ('user' in me) state.user = me.user;
+      } catch (_) {}
+      renderProfile();
+    }
+
+    /* ---------------------------------------------------------------------
+       7. TEMPS RÉEL (SSE + repli polling)
+    --------------------------------------------------------------------- */
+    function startLive() {
+      if (state.mode !== 'remote') return;
+      if (typeof EventSource !== 'undefined') {
+        const es = new EventSource(API_BASE + '/events');
+        es.onmessage = (ev) => {
+          try {
+            const msg = JSON.parse(ev.data);
+            if (msg.type === 'votes') applyLiveVotes(msg.caseId, msg.guilty, msg.innocent);
+          } catch (_) {}
+        };
+        es.onerror = () => es.close(); // repli polling ci-dessous
+      }
+      // sécurité : polling toutes les 10 s pour le cas affiché / ouvert
+      setInterval(async () => {
+        const target = state.openCaseId ||
+          (state.view === 'tribunal' && els.cardStack.querySelector('.is-top')?.dataset.id);
+        if (!target) return;
+        try {
+          const res = await fetchJson('/api/cases/' + encodeURIComponent(target));
+          applyLiveVotes(res.case.id, res.case.guilty, res.case.innocent);
+        } catch (_) {}
+      }, 10000);
+    }
+
+    function applyLiveVotes(id, g, i) {
+      const c = byId(id);
+      if (!c) return;
+      c.guilty = g;
+      c.innocent = i;
+      if (state.openCaseId === id) syncDetail();
+      if (state.view === 'tribunal') updateVisibleCard(id);
+      if (state.view === 'wall') renderWall();
+    }
+
+    function updateVisibleCard(id) {
+      const card = els.cardStack.querySelector('.is-top');
+      if (!card || card.dataset.id !== id) return;
+      const c = byId(id);
+      if (!c) return;
+      const p = pctGuilty(c.guilty, c.innocent);
+      const chip = card.querySelector('.pct-chip');
+      if (chip) {
+        chip.textContent = p + '% coupable';
+        chip.className = 'pct-chip text-[10px] font-bold ' + (p >= 50 ? 'text-red2' : 'text-green2');
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       8. TOASTS + PROFIL
+    --------------------------------------------------------------------- */
+    function toast(msg) {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.setAttribute('role', 'status');
+      el.textContent = msg;
+      els.toastWrap.appendChild(el);
+      setTimeout(() => {
+        el.style.transition = 'opacity .4s ease, transform .4s ease';
+        el.style.opacity = '0';
+        el.style.transform = 'translate(-50%, -8px)';
+        setTimeout(() => el.remove(), 400);
+      }, 2400);
+    }
+
+    const badgesMeta = {
+      'Recrue du prétoire': '🗡️', 'Greffier': '⚖️', 'Bourreau': '🧑‍⚖️', 'Juge Suprême': '👑',
+      'Enchaîné': '🔥', 'Inarrêtable': '⚡',
+    };
+
+    function renderProfile() {
+      const m = state.me;
+      const parts = [];
+      if (state.user) {
+        const av = state.user.avatar
+          ? `<img src="${esc(state.user.avatar)}" alt="" class="h-4 w-4 rounded-full object-cover" style="display:inline-block;vertical-align:-2px" />`
+          : '👤';
+        parts.unshift(`<button data-act="account" class="chip cursor-pointer" style="border:1px solid rgba(22,217,135,.5);color:#8df0c6" title="Connecté via ${esc(state.user.provider)}">${av} ${esc(state.user.name)}</button>`);
+      } else if (state.mode === 'remote' && (state.providers.length || state.devLogin)) {
+        parts.unshift(`<button data-act="login" class="chip cursor-pointer" style="border:1px solid rgba(255,255,255,.25);color:#e9e4d8">👤 Se connecter</button>`);
+      }
+      if (m.points > 0) parts.push(`<span class="chip">⚖️ ${m.points} pts de justice</span>`);
+      parts.push(`<span class="chip">🗳️ ${m.votes} verdicts</span>`);
+      if (m.streak > 0) parts.push(`<span class="chip" style="background:rgba(22,217,135,.14);color:#8df0c6">🔥 Série ${m.streak} j</span>`);
+      m.badges.forEach((b) => parts.push(`<span class="chip" style="background:rgba(232,121,249,.12);color:#f0bcf6">${badgesMeta[b] || '🎖️'} ${b}</span>`));
+      parts.push(`<span class="chip" style="background:rgba(255,255,255,.06);color:#ffffff66">${state.mode === 'remote' ? '🌐 Tribunal connecté' : '📴 Mode démo (fichier local)'}</span>`);
+      if (navigator.onLine === false) parts.push(`<span class="chip" style="background:rgba(255,59,92,.14);color:#ff9db0">📴 Hors-ligne</span>`);
+      if (!isStandalone()) parts.push(`<button data-act="install" class="chip cursor-pointer" style="border:1px solid rgba(139,92,246,.5);color:#c4b5fd">📲 Installer l'app</button>`);
+      parts.push(`<button data-act="week" class="chip cursor-pointer" style="border:1px solid rgba(56,189,248,.5);color:#7dd3fc">🗞️ Ma semaine</button>`);
+      const q = readQueue();
+      if (q.length) parts.push(`<span class="chip" style="background:rgba(255,177,55,.12);color:#ffd08a">⏳ ${q.length} en attente</span>`);
+      els.profileStrip.innerHTML = parts.join('');
+    }
+
+    /* Installable : PWA (Android/Desktop/Crépuscule) + guide iOS Safari */
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+        navigator.standalone === true;
+    }
+    let deferredInstall = null;
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstall = e;
+      });
+      window.addEventListener('appinstalled', () => {
+        deferredInstall = null;
+        renderProfile();
+        toast('✅ App installée. Rendez-vous au prétoire !');
+      });
+      window.addEventListener('online', () => renderProfile());
+      window.addEventListener('offline', () => {
+        renderProfile();
+        toast('📴 Pas de réseau — les votes sont stockés localement.');
+      });
+    }
+    function triggerInstall() {
+      if (deferredInstall) {
+        deferredInstall.prompt();
+        deferredInstall.userChoice.finally(() => { deferredInstall = null; renderProfile(); });
+        return;
+      }
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+      toast(isIOS
+        ? 'Sur iPhone/iPad : menu Partager ➜ « Sur l’écran d’accueil »'
+        : 'Astuce : menu du navigateur ➜ « Ajouter à l’écran d’accueil »');
+    }
+    els.profileStrip.addEventListener('click', (e) => {
+      if (e.target.closest('[data-act="install"]')) triggerInstall();
+      if (e.target.closest('[data-act="week"]')) shareWeek();
+      if (e.target.closest('[data-act="login"]')) openAuth();
+      if (e.target.closest('[data-act="account"]')) openAuth();
+    });
+
+    /* ---------------------------------------------------------------------
+       COMPTE — modale connexion (OAuth : GitHub / Google / Discord)
+    --------------------------------------------------------------------- */
+    function openAuth() {
+      renderAuthModal();
+      const ov = $('#auth-overlay');
+      ov.classList.remove('hidden');
+      ov.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeAuth() {
+      const ov = $('#auth-overlay');
+      if (!ov || ov.classList.contains('hidden')) return;
+      ov.classList.add('hidden');
+      ov.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+    function loginWith(provider) {
+      location.href = API_BASE + '/api/auth/' + encodeURIComponent(provider) +
+        '?voter=' + encodeURIComponent(voterId());
+    }
+    async function logoutAccount() {
+      try {
+        await fetch(API_BASE + '/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (_) {}
+      state.user = null;
+      await refreshMe();
+      closeAuth();
+      toast('👋 Déconnecté. Retour à la vie anonyme.');
+    }
+
+    function renderAuthModal() {
+      const body = $('#auth-body');
+      if (state.user) {
+        const u = state.user;
+        const av = u.avatar
+          ? `<img src="${esc(u.avatar)}" alt="" class="h-12 w-12 rounded-full object-cover" />`
+          : `<span class="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-xl">👤</span>`;
+        body.innerHTML = `
+          <div class="flex items-center gap-3">
+            ${av}
+            <div class="min-w-0">
+              <p class="truncate text-base font-bold text-white">${esc(u.name)}</p>
+              <p class="text-[10px] uppercase tracking-wider text-white/40">via ${esc(u.provider)} · identité partagée sur tous vos appareils</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="chip">⚖️ ${state.me.points || 0} pts</span>
+            <span class="chip">🗳️ ${state.me.votes || 0} verdicts</span>
+            <span class="chip" style="background:rgba(22,217,135,.14);color:#8df0c6">🔥 Série ${state.me.streak || 0} j</span>
+          </div>
+          <div class="space-y-2">
+            <button onclick="closeAuth(); shareWeek();" class="glass w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-white/10">🗞️ Ma semaine</button>
+            <button onclick="logoutAccount()" class="w-full rounded-2xl border border-red2/40 bg-red2/10 px-4 py-3 text-sm font-semibold text-[#ff9db0] transition hover:bg-red2/20">🔓 Se déconnecter</button>
+          </div>`;
+        return;
+      }
+
+      const buttons = (state.providers || []).map((p) => `
+        <button onclick="loginWith('${p.id}')" class="glass flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10">
+          <span class="text-lg">${p.icon}</span> Continuer avec ${p.label}
+        </button>`).join('');
+      const dev = state.devLogin ? `
+        <button onclick="loginWith('dev')" class="w-full rounded-2xl border border-dashed border-white/25 px-4 py-2.5 text-xs font-semibold text-white/50 transition hover:border-white/45 hover:text-white/75">🧪 Compte de test (dev)</button>` : '';
+
+      body.innerHTML = `
+        <p class="text-sm leading-relaxed text-white/60">Un compte pour retrouver vos <strong class="text-white/85">série, points et badges</strong> sur tous vos appareils. La première connexion adopte automatiquement votre profil anonyme en cours.</p>
+        <div class="space-y-2">
+          ${buttons || '<p class="text-xs text-white/40">Aucun fournisseur configuré — voir README.md (GITHUB_/DISCORD_/GOOGLE_CLIENT_ID+SECRET).</p>'}
+          ${dev}
+        </div>
+        <p class="text-[10px] leading-relaxed text-white/35">Aucun mot de passe. Le Tribunal ne voit que votre nom, votre avatar et votre identifiant public du fournisseur. Les statistiques sont rattachées à votre compte, pas au site tiers.</p>`;
+    }
+
+    /* Bilan hebdomadaire partageable (og-image /og/week/:voter.png). */
+    async function shareWeek() {
+      if (state.mode !== 'remote') { toast('📴 Le bilan de la semaine nécessite le tribunal connecté.'); return; }
+      let w;
+      try { w = await fetchJson('/api/week'); } catch (_) { toast('⚠️ Serveur injoignable.'); return; }
+      const myVoter = w.voter || voterId();
+      const url = (API_BASE || location.origin || '') + '/w/' + encodeURIComponent(myVoter);
+      const head = w.badges.includes('👑 Juge Suprême') ? 'Juge Suprême au prétoire !' : 'Ma saison au prétoire';
+      const text = `⚖️ ${head}\n${w.votes} verdict(s) cette semaine · ${w.guilty + w.innocent ? Math.round((w.guilty / (w.guilty + w.innocent)) * 100) : 0}% coupable · ${w.activeDays} j de série\n\n${url}`;
+      if (navigator.share) {
+        try { await navigator.share({ title: 'Ma semaine · The Last Vibe', text, url }); return; } catch (_) {}
+      }
+      try { await navigator.clipboard.writeText(url); toast('🔗 Lien du bilan copié !'); }
+      catch (_) { toast(url); }
+    }
+
+    /* ---------------------------------------------------------------------
+       9. NAVIGATION
+    --------------------------------------------------------------------- */
+    function switchView(view) {
+      state.view = view;
+      $$('.view').forEach((s) => s.classList.add('hidden'));
+      const el = $('#view-' + view);
+      if (el) el.classList.remove('hidden');
+      $$('[data-nav]').forEach((b) => b.classList.toggle('active', b.dataset.nav === view));
+      if (view === 'tribunal') renderStack();
+      if (view === 'wall') renderWall();
+      window.scrollTo({ top: 0 });
+    }
+    $$('[data-nav]').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.nav)));
+
+    /* ---------------------------------------------------------------------
+       10. VOTE — cœur de l'application
+    --------------------------------------------------------------------- */
+    function vote(id, side, el) {
+      const c = byId(id);
+      if (!c || state.voted[id]) return;
+
+      // haptique native (Android WebView / appareils compatibles)
+      buzz(side === 'guilty' ? 28 : 15);
+
+      // optimiste : on affiche tout de suite
+      state.voted[id] = side;
+      persistVoted();
+      c[side] = Number(c[side]) + 1;
+
+      if (state.openCaseId === id) syncDetail();
+      if (state.view === 'tribunal') {
+        if (el) flyOut(el, side);
+        else renderStack();
+      }
+      toast(side === 'guilty' ? '🔥 Coupable. Le Juge approuve.' : '👑 Innocent. Le Juge râle.');
+
+      // synchronisation serveur (ou local en mode démo)
+      if (state.mode === 'remote') {
+        if (navigator.onLine === false) { enqueueVote(id, side); return; }
+        fetchJson('/api/votes', { method: 'POST', body: JSON.stringify({ caseId: id, side }) })
+          .then((r) => {
+            state.me = { votes: r.votes, streak: r.streak, points: r.points, badges: r.badges };
+            renderProfile();
+            c.guilty = r.guilty;
+            c.innocent = r.innocent;
+            if (state.openCaseId === id) syncDetail();
+            if (state.view === 'wall') renderWall();
+          })
+          .catch(() => enqueueVote(id, side));
+      } else {
+        updateLocalMeOnVote();
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       10b. VOTES HORS-LIGNE — file locale + synchronisation au retour réseau
+    --------------------------------------------------------------------- */
+    function buzz(len) { try { if (navigator.vibrate) navigator.vibrate(len); } catch (_) {} }
+
+    function readQueue() {
+      try { return JSON.parse(localStorage.getItem('tlv_queue') || '[]'); } catch (_) { return []; }
+    }
+    function saveQueue(q) {
+      try { localStorage.setItem('tlv_queue', JSON.stringify(q)); } catch (_) {}
+    }
+    function enqueueVote(caseId, side) {
+      const q = readQueue();
+      if (!q.some((v) => v.caseId === caseId)) {
+        q.push({ caseId, side, at: Date.now() });
+        saveQueue(q);
+      }
+      toast('📴 Vote noté — synchronisé dès le retour du réseau.');
+      renderProfile();
+      flushQueue();
+    }
+    async function flushQueue() {
+      if (state.mode !== 'remote' || navigator.onLine === false) return;
+      let q = readQueue();
+      if (!q.length) return;
+      let progress = false;
+      const kept = [];
+      for (const v of q) {
+        try {
+          await fetchJson('/api/votes', { method: 'POST', body: JSON.stringify({ caseId: v.caseId, side: v.side }) });
+          progress = true;
+        } catch (err) {
+          if (/lib|trouv/i.test(String(err && err.message))) continue;         // vote déjà dédupliqué : on retire
+          kept.push(v);                                                          // coupure réseau : on garde
+        }
+      }
+      saveQueue(kept);
+      if (progress) {
+        toast('✅ ' + (q.length - kept.length) + ' verdict(s) hors-ligne synchronisé(s).');
+        refreshMe();
+        if (state.view === 'wall') renderWall();
+      }
+    }
+    window.addEventListener('online', () => { renderProfile(); if (state.mode === 'remote') flushQueue(); });
+    setInterval(() => { if (state.mode === 'remote' && readQueue().length) flushQueue(); }, 15000);
+
+    function updateLocalMeOnVote() {
+      const today = new Date().toDateString();
+      let s = { date: today, count: 1 };
+      try { s = JSON.parse(localStorage.getItem('tlv_streak') || 'null') || s; } catch (_) {}
+      if (s.date !== today) s = { date: today, count: 1 }; else s.count += 1;
+      localStorage.setItem('tlv_streak', JSON.stringify(s));
+      state.me = {
+        votes: (state.me.votes || 0) + 1,
+        streak: s.count,
+        points: (state.me.votes + 1) * 10 + Math.max(0, s.count - 1) * 25,
+        badges: [],
+      };
+      renderProfile();
+    }
+
+    function flyOut(el, side) {
+      els.cardStack.style.pointerEvents = 'none';
+      el.classList.add('dragging');
+      const dir = side === 'guilty' ? 1 : -1;
+      el.style.transition = 'transform .45s ease, opacity .45s ease';
+      el.style.transform = `translateX(${dir * 190}%) rotate(${dir * 18}deg) scale(.92)`;
+      el.style.opacity = '0';
+      setTimeout(() => {
+        els.cardStack.style.pointerEvents = '';
+        renderStack();
+      }, 440);
+    }
+
+    function resetVotes() {
+      state.voted = {};
+      persistVoted();
+      if (state.mode === 'remote') {
+        // rechargement depuis le serveur (reset seulement visuel en démo)
+        fetchJson('/api/cases?limit=50', { timeout: 6000 })
+          .then((r) => { state.cases = r.cases; renderStack(); toast('↺ L’audience est redémarrée sur les archives.'); })
+          .catch(() => toast('↺ Impossible de recharger : mode hors-ligne.'));
+      } else {
+        state.cases.forEach((c) => {
+          c.guilty = c.base.guilty;
+          c.innocent = c.base.innocent;
+        });
+        toast('↺ Les archives sont réinitialisées. Refaire le monde.');
+        renderStack();
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       11. LE TRIBUNAL — cartes swipe
+    --------------------------------------------------------------------- */
+    function renderDailyBanner() {
+      const d = state.daily;
+      if (!d) return els.dailyBanner.classList.add('hidden');
+      els.dailyBanner.classList.remove('hidden');
+      els.dailyBanner.innerHTML = `
+        <button onclick="openDetail('${d.id}')"
+          class="daily-banner animate-up flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:brightness-110">
+          <span class="text-2xl">📯</span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-[10px] font-bold uppercase tracking-[0.2em] text-violet2">Cas du jour</span>
+            <span class="block truncate text-sm font-semibold text-white/90">“ ${abbreviate(esc(d.text), 80)} ”</span>
+          </span>
+          <span class="shrink-0 text-violet2/80">→ Juger</span>
+        </button>`;
+    }
+
+    function renderStack() {
+      const stack = state.cases.filter((c) => !state.voted[c.id]);
+      els.stackCounter.textContent = `⚖️ ${stack.length} cas à juger`;
+      els.cardStack.innerHTML = '';
+
+      if (stack.length === 0) {
+        els.cardStack.innerHTML = `
+          <div class="glass animate-up flex h-full flex-col items-center justify-center rounded-3xl px-6 text-center">
+            <p class="text-5xl">⚖️</p>
+            <h3 class="font-display mt-4 text-xl font-bold">Tout a été jugé.</h3>
+            <p class="mt-2 max-w-[260px] text-sm text-white/45">
+              Le Juge Suprême vide le prétoire. Balance un nouveau cas ou recommence la session.
+            </p>
+            <button onclick="switchView('submit')" class="mt-5 rounded-2xl bg-gradient-to-r from-violet2 to-blue2 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_-8px_rgba(139,92,246,.7)] transition hover:scale-[1.03]">
+              ✍️ Poster un cas
+            </button>
+            <button onclick="resetVotes()" class="mt-3 text-xs font-medium text-white/40 underline underline-offset-4 hover:text-white">
+              ↺ Recommencer le jugement
+            </button>
+          </div>`;
+        return;
+      }
+
+      const c = stack[0];
+      const card = buildCard(c);
+      els.cardStack.appendChild(card);
+      bindSwipe(card, c);
+    }
+
+    function buildCard(c) {
+      const div = document.createElement('div');
+      const { guilty: g, innocent: i } = totalsOf(c);
+      div.dataset.id = c.id;
+      div.className = 'stack-card glass is-top';
+
+      const isDaily = state.daily && state.daily.id === c.id;
+
+      div.innerHTML = `
+        <div class="flex items-center justify-between gap-3">
+          <span class="chip">⚖️ ${isDaily ? 'Cas du jour' : 'Dossier #' + abbreviate(c.id, 8)}</span>
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-white/40">${abbreviate(esc(c.author || 'Anonyme'), 22)}</span>
+        </div>
+
+        <div class="flex flex-1 flex-col justify-center gap-3">
+          <p class="font-display text-2xl leading-snug sm:text-3xl">“ ${esc(c.text)} ”</p>
+          <p class="text-[10px] uppercase tracking-[0.2em] text-white/30">— archives confidentielles · ${esc(timeLabel(c))}</p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2">
+          <button onclick="openDetail('${c.id}')"
+            class="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-white/60 transition hover:text-white" title="Voir la sentence">
+            ⚖️ Lire la sentence du Juge
+          </button>
+          <span class="pct-chip text-[10px] font-bold ${pctGuilty(g, i) >= 50 ? 'text-red2' : 'text-green2'}">
+            ${pctGuilty(g, i)}% coupable
+          </span>
+        </div>
+
+        <div class="card-actions mt-4 grid grid-cols-2 gap-3">
+          <button class="btn-vote btn-inno" onclick="vote('${c.id}','innocent')">
+            <span class="text-sm">👑 Innocent</span>
+            <span class="text-[10px] font-semibold text-white/70">glisse vers la gauche</span>
+          </button>
+          <button class="btn-vote btn-guilty" onclick="vote('${c.id}','guilty')">
+            <span class="text-sm">🔥 Coupable</span>
+            <span class="text-[10px] font-semibold text-white/70">glisse vers la droite</span>
+          </button>
+        </div>`;
+
+      return div;
+    }
+
+    function bindSwipe(card, c) {
+      let active = false, startX = 0, startY = 0, dragging = false;
+
+      card.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.card-actions') || e.target.closest('button')) return;
+        active = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        dragging = false;
+        card.style.touchAction = 'none';
+        card.classList.add('dragging');
+        try { card.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+
+      card.addEventListener('pointermove', (e) => {
+        if (!active) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (!dragging && Math.hypot(dx, dy) > 8) dragging = true;
+        if (!dragging) return;
+        if (Math.abs(dx) < Math.abs(dy)) return;
+
+        card.style.transform = `translateX(${dx}px) rotate(${dx * 0.055}deg)`;
+        card.classList.toggle('swipe-g', dx > 0);
+        card.classList.toggle('swipe-r', dx < 0);
+      });
+
+      const release = (e) => {
+        if (!active) return;
+        active = false;
+        card.style.touchAction = '';
+        card.classList.remove('dragging', 'swipe-g', 'swipe-r');
+        if (!dragging) return;
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 110) vote(c.id, dx > 0 ? 'guilty' : 'innocent', card);
+        else card.style.transform = '';
+      };
+
+      card.addEventListener('pointerup', release);
+      card.addEventListener('pointercancel', () => {
+        active = false; dragging = false;
+        card.style.touchAction = '';
+        card.classList.remove('dragging', 'swipe-g', 'swipe-r');
+        card.style.transform = '';
+      });
+    }
+
+    /* ---------------------------------------------------------------------
+       12. MODALE DE DÉTAIL
+    --------------------------------------------------------------------- */
+    async function openDetail(id) {
+      const c = byId(id);
+      if (!c) return;
+      state.openCaseId = id;
+
+      els.dlChips.textContent = '⚖️ Dossier ' + abbreviate(c.id, 8) + ' · ' + timeLabel(c);
+      els.dlMeta.textContent = 'Déposé de manière anonyme par ' + (c.author || 'Anonyme');
+      els.dlText.textContent = c.text;
+      els.dlComment.textContent = c.verdict.comment;
+      els.dlCrime.textContent = c.verdict.crime;
+      els.dlSentence.innerHTML = `“ <em>${esc(c.verdict.sentence)}</em> ”`;
+      els.dlShares.textContent = '📤 ' + (Number(c.share_count || 0)).toLocaleString('fr-FR');
+
+      syncDetail();
+      renderReactions(id, state.reactions[id]);
+
+      if (state.mode === 'remote') {
+        try {
+          const res = await fetchJson('/api/cases/' + encodeURIComponent(id));
+          const fresh = res.case;
+          const cur = byId(id);
+          if (cur) { cur.guilty = fresh.guilty; cur.innocent = fresh.innocent; cur.share_count = fresh.share_count; }
+          if (res.reactions) { state.reactions[id] = res.reactions; renderReactions(id, res.reactions); }
+          if (state.openCaseId === id) { syncDetail(); els.dlShares.textContent = '📤 ' + Number(fresh.share_count || 0).toLocaleString('fr-FR'); }
+        } catch (_) {}
+      }
+
+      els.detailOverlay.classList.remove('hidden');
+      els.detailOverlay.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      state.openCaseId = null;
+      els.detailOverlay.classList.add('hidden');
+      els.detailOverlay.classList.remove('flex');
+      document.body.style.overflow = '';
+      if (state.view === 'tribunal') renderStack();
+    }
+
+    function syncDetail() {
+      const c = byId(state.openCaseId);
+      if (!c) return;
+      const g = Number(c.guilty), i = Number(c.innocent);
+      const p = pctGuilty(g, i);
+      const total = g + i;
+
+      els.dlTotal.textContent = total.toLocaleString('fr-FR') + ' voix';
+      els.dlPctGuilty.textContent = p + '%';
+      els.dlPctInno.textContent = (100 - p) + '%';
+      els.dlBarGuilty.style.width = p + '%';
+      els.dlBarInno.style.width = (100 - p) + '%';
+
+      els.dlBtnGuilty.innerHTML = '<span class="text-sm">🔥 Coupable</span><span class="text-[10px] font-semibold text-white/70">' + g.toLocaleString('fr-FR') + ' voix</span>';
+      els.dlBtnInno.innerHTML = '<span class="text-sm">👑 Innocent</span><span class="text-[10px] font-semibold text-white/70">' + i.toLocaleString('fr-FR') + ' voix</span>';
+
+      const voted = !!state.voted[c.id];
+      els.dlBtnGuilty.disabled = voted;
+      els.dlBtnInno.disabled = voted;
+      els.dlBtnGuilty.classList.toggle('opacity-60', voted);
+      els.dlBtnInno.classList.toggle('opacity-60', voted);
+      els.dlVotedNote.classList.toggle('hidden', !voted);
+    }
+
+    function voteFromDetail(side) {
+      vote(state.openCaseId, side, null);
+    }
+
+    /* ---------------------------------------------------------------------
+       13. RÉACTIONS + COMMENTAIRES
+    --------------------------------------------------------------------- */
+    const REACT_EMOJIS = ['👍', '😂', '😱', '❤️'];
+
+    function renderReactions(id, data) {
+      data = data || { counts: {}, comments: [] };
+      const mine = state.myReact[id];
+      els.dlReactions.innerHTML = REACT_EMOJIS.map((e) => `
+        <button class="emoji-btn ${mine === e ? 'mine' : ''}" onclick="react('${id}','${e}')">
+          <span>${e}</span><span class="text-white/50">${data.counts[e] || 0}</span>
+        </button>`).join('');
+
+      els.dlComments.innerHTML = (data.comments && data.comments.length)
+        ? data.comments.map((c) => `
+            <div class="rounded-xl bg-white/[0.04] px-3 py-2 text-xs text-white/70">
+              <span class="text-pink2/80">🗣️</span> ${esc(c.comment)}
+            </div>`).join('')
+        : '<p class="text-[11px] text-white/30">Pas encore de glose. Le silence est une forme de poésie.</p>';
+    }
+
+    async function react(id, emoji) {
+      const was = state.myReact[id];
+      const next = was === emoji ? '' : emoji; // toggle
+      state.myReact[id] = next;
+      renderReactions(id, state.reactions[id]);
+
+      if (state.mode === 'remote') {
+        try {
+          const res = await fetchJson('/api/cases/' + encodeURIComponent(id) + '/react', {
+            method: 'POST',
+            body: JSON.stringify({ emoji: next || null }),
+          });
+          state.reactions[id] = res.reactions;
+          renderReactions(id, res.reactions);
+        } catch (_) {
+          toast('⚠️ Réaction non synchronisée (hors-ligne).');
+        }
+      } else {
+        // mode démo : réaction en mémoire
+        const d = state.reactions[id] || { counts: {}, comments: [] };
+        if (was && d.counts[was]) d.counts[was] = Math.max(0, d.counts[was] - 1);
+        if (next) d.counts[next] = (d.counts[next] || 0) + 1;
+        state.reactions[id] = d;
+        renderReactions(id, d);
+      }
+    }
+
+    async function sendComment() {
+      const id = state.openCaseId;
+      const text = els.commentInput.value.trim();
+      if (!id || !text) return;
+      if (state.mode === 'remote') {
+        try {
+          const res = await fetchJson('/api/cases/' + encodeURIComponent(id) + '/react', {
+            method: 'POST',
+            body: JSON.stringify({ comment: text }),
+          });
+          state.reactions[id] = res.reactions;
+          renderReactions(id, res.reactions);
+          els.commentInput.value = '';
+          toast('💬 Glose déposée au dossier.');
+        } catch (_) { toast('⚠️ Impossible d’enregistrer (hors-ligne).'); }
+      } else {
+        const d = state.reactions[id] || { counts: {}, comments: [] };
+        d.comments = [{ comment: text, at: new Date() }, ...(d.comments || [])].slice(0, 5);
+        state.reactions[id] = d;
+        renderReactions(id, d);
+        els.commentInput.value = '';
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       14. PARTAGE (URL unique + og:image) & SIGNALEMENT
+    --------------------------------------------------------------------- */
+    function shareUrl(id) {
+      const c = byId(id);
+      if (state.mode === 'remote') return (API_BASE || location.origin || '') + '/c/' + encodeURIComponent(id);
+      return '?cas=' + encodeURIComponent(id); // mode local : pas d'URL sociale
+    }
+
+    function shareCurrent() {
+      const c = byId(state.openCaseId);
+      if (!c) return;
+      const url = shareUrl(c.id);
+      const headline = c.title
+        ? c.title
+        : 'Un crime du quotidien jugé par la communauté';
+      const shareText = `⚖️ ${headline}\n« ${abbreviate(c.text, 120)} »\n\n☠️ Sentence : ${c.verdict.sentence}\n🗳️ ${pctGuilty(c.guilty, c.innocent)}% Coupable\n\n${url}`;
+
+      if (state.mode === 'remote') {
+        fetchJson('/api/cases/' + encodeURIComponent(c.id) + '/share', { method: 'POST', body: '{}' })
+          .then(() => {
+            c.share_count = Number(c.share_count || 0) + 1;
+            els.dlShares.textContent = '📤 ' + c.share_count.toLocaleString('fr-FR');
+          })
+          .catch(() => {});
+      }
+
+      if (navigator.share) {
+        navigator.share({ title: 'The Last Vibe', text: shareText, url })
+          .then(() => toast('📤 Verdict partagé !'))
+          .catch(() => {});
+      } else {
+        navigator.clipboard?.writeText(shareText)
+          .then(() => toast('📋 Lien + verdict copiés (partagez-le !)'))
+          .catch(() => toast('Copie impossible 😢' + (state.mode === 'local' ? ' (ouvrez via le serveur pour un lien social).' : '')));
+      }
+    }
+
+    async function flagCurrent() {
+      const id = state.openCaseId;
+      if (!id) return;
+      if (state.mode === 'remote') {
+        try {
+          await fetchJson('/api/cases/' + encodeURIComponent(id) + '/flag', { method: 'POST', body: '{}' });
+          toast('🚩 Signalé. Un greffier va… enfin, quelqu’un va regarder.');
+        } catch (_) { toast('⚠️ Signalement impossible (hors-ligne).'); }
+      } else {
+        toast('🚩 Signalé (en local, personne ne regarde vraiment).');
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       15. SOUMISSION — simulation instantanée de l'IA
+    --------------------------------------------------------------------- */
+    const JUDGE_PHASES = [
+      'Ouverture du dossier…',
+      'Interrogatoire des témoins (il n’y a personne)…',
+      'Consultation des jurisprudences absurdes…',
+      'Rédaction de la sentence au feutre doré…',
+      'Signature. Le tribunal savoure.',
+    ];
+
+    function submitCase(e) {
+      e.preventDefault();
+      const text = els.caseInput.value.trim();
+      if (text.length < 12) {
+        toast('⚠️ Votre crime manque de détails (12 caractères minimum).');
+        els.caseInput.focus();
+        return;
+      }
+
+      els.judgeOverlay.classList.remove('hidden');
+      els.judgeOverlay.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+
+      let step = 0;
+      els.judgePhase.textContent = JUDGE_PHASES[0];
+      const timer = setInterval(() => {
+        step += 1;
+        if (step < JUDGE_PHASES.length) els.judgePhase.textContent = JUDGE_PHASES[step];
+        else { clearInterval(timer); finalizeSubmission(text); }
+      }, 640);
+    }
+
+    async function finalizeSubmission(text) {
+      let c;
+      if (state.mode === 'remote') {
+        try {
+          const res = await fetchJson('/api/cases', {
+            method: 'POST',
+            body: JSON.stringify({ text }),
+            timeout: 10000,
+          });
+          c = res.case;
+        } catch (err) {
+          hideJudge();
+          toast('⚠️ ' + err.message);
+          return;
+        }
+      } else {
+        // verdict local (mode démo)
+        c = {
+          id: uid(),
+          author: 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
+          time: 'à l’instant',
+          text,
+          title: null,
+          guilty: Math.floor(Math.random() * 5),
+          innocent: Math.floor(Math.random() * 5),
+          base: { guilty: 0, innocent: 0 },
+          share_count: 0,
+          verdict: localGenerateVerdict(text),
+        };
+      }
+
+      state.cases.unshift(c);
+      hideJudge();
+      els.caseInput.value = '';
+      updateCharCount();
+
+      switchView('tribunal');
+      toast('⚖️ Nouveau cas déposé et jugé. Le verdict est prêt.');
+      setTimeout(() => openDetail(c.id), 500);
+    }
+
+    function hideJudge() {
+      els.judgeOverlay.classList.add('hidden');
+      els.judgeOverlay.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    /* Verdict local en mode démo (copie légère du générateur serveur). */
+    const AI_SENTENCES = [
+      'Condamné à dire « vous me pardonnez ? » chaque matin face au miroir, avec intonation lyrique, pendant 10 jours.',
+      'Prison… conceptuelle. La cellule : un groupe WhatsApp plein, dont l’intéressé devient administrateur.',
+      '100 € d’amende sociale, réglables en compliments gratuits adressés à un inconnu chaque jour.',
+      'Interdiction d’ouvrir le réfrigérateur collectif pendant une semaine. Ration : eau claire et bons sentiments.',
+      'Peine : rédiger des excuses DÉTAILLÉES (plus de 60 caractères, avec ponctuation, sans « lol »).',
+      'Le tribunal exige une vidéo muette de 15 s, mime théâtral d’excuses, hashtag #jessaiemeux.',
+    ];
+    function localGenerateVerdict(text) {
+      return {
+        comment: 'Le greffier a lu le dossier en diagonale, la dignité est sauve. « ' + abbreviate(text, 90) + ' ». On a tout relu, recoupé : c’est du trouble à l’ordre établi par soi-même. Le juge signe, personne ne comprend.',
+        crime: 'trouble à l’ordre établi par soi-même',
+        sentence: AI_SENTENCES[Math.floor(Math.random() * AI_SENTENCES.length)],
+      };
+    }
+
+    function updateCharCount() {
+      const n = els.caseInput.value.length;
+      els.charCount.textContent = n + '/280';
+      els.charCount.classList.toggle('text-red2', n > 240);
+    }
+    els.caseInput.addEventListener('input', updateCharCount);
+    els.caseInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitCase(e);
+    });
+
+    /* ---------------------------------------------------------------------
+       16. MUR DE LA HONTE
+    --------------------------------------------------------------------- */
+    async function renderWall() {
+      if (state.mode === 'remote') {
+        try {
+          const w = await fetchJson('/api/stats/wall');
+          renderWallData(w);
+          return;
+        } catch (_) { /* repli sur les données locales */ }
+      }
+      const copy = state.cases.slice();
+      const total = (c) => Number(c.guilty) + Number(c.innocent);
+      const tap = copy.slice().sort((a, b) => total(b) - total(a)).slice(0, 5);
+      const shame = copy.filter((c) => total(c) >= 8)
+        .sort((a, b) => pctGuilty(b.guilty, b.innocent) - pctGuilty(a.guilty, a.innocent))
+        .slice(0, 5);
+      renderWallData({ top: tap, shame, contributors: [] });
+    }
+
+    function renderWallData(w) {
+      els.wallTop.innerHTML = (w.top || []).map((c, i) => wallRow(c, i, false)).join('')
+        || '<p class="text-sm text-white/35">Pas encore de contribuables. Jugez quelque chose d’abord.</p>';
+      els.wallShame.innerHTML = (w.shame || []).map((c, i) => wallRow(c, i, true)).join('')
+        || '<p class="text-sm text-white/35">Pas assez de scandale cette semaine. Le Juge s’ennuie.</p>';
+
+      const contrib = w.contributors || [];
+      els.wallContributors.innerHTML = contrib.length
+        ? contrib.map((c, i) => contributorRow(c, i)).join('')
+        : '<p class="text-sm text-white/35">Aucun verdict cette semaine. Les jurés font la grève des liesses.</p>';
+    }
+
+    function wallRow(c, i, shame) {
+      const g = Number(c.guilty || 0), ino = Number(c.innocent || 0);
+      const p = pctGuilty(g, ino);
+      const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i] || (i + 1) + '️⃣';
+      const share = shame ? p + '%' : (g + ino).toLocaleString('fr-FR') + ' voix';
+      const label = shame ? 'coupable' : 'jugements';
+      return `
+        <button onclick="openDetail('${c.id}')"
+          class="glass animate-up flex w-full items-center gap-4 rounded-2xl p-4 text-left transition hover:border-violet2/40 hover:bg-white/[0.06]"
+          style="animation-delay:${i * 60}ms">
+          <span class="w-8 shrink-0 text-center text-lg">${medal}</span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold text-white/90">“ ${abbreviate(esc(c.text || ''), 46)} ”</p>
+            <div class="mt-2 flex items-center gap-2">
+              <div class="pbar g flex-1"><i style="width:${p}%"></i></div>
+              <span class="w-16 shrink-0 text-right text-[10px] font-bold text-white/50">${p}% ⚖️</span>
+            </div>
+          </div>
+          <div class="shrink-0 text-right">
+            <p class="text-sm font-bold text-white/90">${share}</p>
+            <p class="text-[10px] uppercase tracking-wider text-white/35">${label}</p>
+          </div>
+        </button>`;
+    }
+
+    function contributorRow(c, i) {
+      const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i] || (i + 1) + '️⃣';
+      const name = '⚖️ Justicier #' + abbreviate(c.voter, 10);
+      return `
+        <div class="glass flex items-center gap-4 rounded-2xl p-4" style="animation-delay:${i * 60}ms">
+          <span class="w-8 shrink-0 text-center text-lg">${medal}</span>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-white/90">${esc(name)}</p>
+            <p class="text-[10px] uppercase tracking-wider text-white/35">magistrat de la semaine</p>
+          </div>
+          <p class="shrink-0 text-sm font-bold text-white/90">${c.votes} ⚖️</p>
+        </div>`;
+    }
+
+    /* ---------------------------------------------------------------------
+       17. RACCOURCIS CLAVIER + INITIALISATION
+    --------------------------------------------------------------------- */
+    document.addEventListener('keydown', (e) => {
+      if (state.openCaseId === null && state.view === 'tribunal') {
+        const top = els.cardStack.querySelector('.is-top');
+        if (!top) return;
+        if (e.key === 'ArrowRight') vote(top.dataset.id, 'guilty', top);
+        if (e.key === 'ArrowLeft') vote(top.dataset.id, 'innocent', top);
+      }
+      if (e.key === 'Escape') { closeDetail(); closeAuth(); }
+    });
+
+    /* PWA : enregistrement du service worker (ignoré en fichier local). */
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    /* Tablette quotidienne (natif seulement) : rappel du cas du jour à 20 h. */
+    async function scheduleDailyReminder() {
+      try {
+        const Cap = window.Capacitor;
+        if (!Cap || !Cap.isNativePlatform || !Cap.isNativePlatform()) return;
+        const LN = Cap.Plugins && Cap.Plugins.LocalNotifications;
+        if (!LN) return;
+        try {
+          const perms = await LN.checkPermissions();
+          if (perms.display !== 'granted') {
+            const req = await LN.requestPermissions();
+            if (req.display !== 'granted') return;
+          }
+          await LN.cancel({ notifications: [{ id: 1 }] }).catch(() => {});
+          await LN.schedule({
+            notifications: [{
+              id: 1,
+              title: '⚖️ Le prétoire ouvre !',
+              body: '🍿 Nouveau cas du jour. La communauté attend ton verdict.',
+              schedule: { on: { hour: 20, minute: 0 }, allowWhileIdle: true },
+              sound: null
+            }]
+          });
+        } catch (_) {}
+      } catch (_) {}
+    }
+
+    /* Lancement. */
+    (async function init() {
+      setupVoter();
+      const targetId = new URLSearchParams(location.search).get('cas') ||
+        (location.hash.startsWith('#cas=') ? location.hash.slice(5) : null);
+
+      await bootstrap();
+      renderDailyBanner();
+      switchView('tribunal');
+      renderProfile();
+      scheduleDailyReminder();
+
+      // retour du flux de connexion (?bienvenue=… / ?auth_error=…)
+      const qp = new URLSearchParams(location.search);
+      const hello = qp.get('bienvenue');
+      const authErr = qp.get('auth_error');
+      if (hello) toast('🎭 Bienvenue au prétoire, ' + hello + ' ! Votre compte est rattaché à vos stats.');
+      if (authErr) toast('⚠️ Connexion refusée : ' + authErr);
+      if (hello || authErr) {
+        qp.delete('bienvenue');
+        qp.delete('auth_error');
+        const q = qp.toString();
+        history.replaceState({}, '', location.pathname + (q ? '?' + q : '') + location.hash);
+      }
+
+      if (targetId) setTimeout(() => openDetail(targetId), 400);
+    })();
+  </script>
+</body>
+</html>

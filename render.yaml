@@ -1,0 +1,24 @@
+# Render Blueprint — The Last Vibe
+# Usage : Render > New+ > Blueprint > connecter ce repo GitHub.
+services:
+  - type: web
+    name: the-last-vibe
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/bootstrap
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: TZ
+        value: Europe/Paris
+      # À ajouter MANUELLEMENT après création (voir instructions) :
+      #   DATABASE_URL  (Neon, fromDatabase ou collé à la main)
+      #   PUBLIC_URL    (https://<nom-du-service>.onrender.com)
+      #   GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
+      #   DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET
+      #   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+      # Ne PAS mettre DEV_LOGIN en prod.

@@ -1,0 +1,10 @@
+{
+  "appId": "app.thelastvibe.tribunal",
+  "appName": "The Last Vibe",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https",
+    "url": "http://localhost:3111",
+    "cleartext": true
+  }
+}

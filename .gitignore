@@ -1,0 +1,29 @@
+# Dépendances
+node_modules/
+
+# Secrets / config locale (ne JAMAIS committer)
+.env
+.env.*
+lancer-dev.cmd
+*.keystore
+*.jks
+
+# Logs
+*.log
+npm-debug.log*
+
+# Capacitor / Android (régénérés par `npx cap sync`)
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/local.properties
+*.apk
+*.aab
+
+# OS / éditeurs
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

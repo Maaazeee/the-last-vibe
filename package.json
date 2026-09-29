@@ -1,0 +1,30 @@
+{
+  "name": "the-last-vibe",
+  "version": "1.0.0",
+  "description": "The Last Vibe — Le Tribunal du Quotidien : une plateforme sociale où l'on juge anonymement les petits crimes du quotidien.",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "icons": "node scripts/pwa-icons.js",
+    "cap:add": "cap add android",
+    "cap:sync": "cap sync",
+    "cap:open": "cap open android",
+    "cap:run": "cap run android"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/local-notifications": "^6.1.3",
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}
