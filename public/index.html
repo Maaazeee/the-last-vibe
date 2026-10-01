@@ -2359,7 +2359,7 @@
 
     /* PWA : enregistrement du service worker (ignoré en fichier local). */
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {});
     }
 
     /* Tablette quotidienne (natif seulement) : rappel du cas du jour à 20 h. */

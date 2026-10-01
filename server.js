@@ -589,7 +589,19 @@ app.get('/events', (req, res) => {
    STATIQUES (front + PWA)
 --------------------------------------------------------------------- */
 const PUBLIC = path.join(__dirname, 'public');
-app.use(express.static(PUBLIC, { maxAge: '1h' }));
+/* Le shell et le service worker ne doivent JAMAIS être mis en cache HTTP :
+   c'est ce qui faisait qu'un déploiement restait invisible pendant 1 h
+   (le navigateur rejouait l'ancien index.html et ne réinstallait pas
+   le nouveau sw.js). Les assets versionnés gardent 1 h de cache. */
+app.use(express.static(PUBLIC, {
+  maxAge: '1h',
+  setHeaders(res, filePath) {
+    const name = path.basename(filePath);
+    if (name === 'sw.js' || name.endsWith('.html') || name === 'manifest.webmanifest') {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  },
+}));
 
 /* ---------------------------------------------------------------------
    API — DONNÉES

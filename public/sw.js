@@ -12,7 +12,7 @@
    une réponse "offline" JSON pour que le front bascule en mode local.
 ===================================================================== */
 
-const CACHE = 'the-last-vibe-v7';
+const CACHE = 'the-last-vibe-v8';
 const PRECACHE = [
   '/',
   '/manifest.webmanifest',
@@ -55,7 +55,23 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;   // CDN/tailwind : pas de cache
   if (isApiLike(url)) {
+  // Navigation : réseau d'abord, cache en repli (offline). C'est ce qui
+  // rend un déploiement visible dès le premier rechargement.
+  if (req.mode === 'navigate') {
     event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put('/', copy));
+          return res;
+        })
+        .catch(() => caches.match('/').then((cached) => cached || caches.match(req)))
+    );
+    return;
+  }
+
+  // Reste du shell : stale-while-revalidate (réponse immédiate, MAJ en fond).
+  event.respondWith(
       fetch(req).then((res) => res).catch(() => {
         if (url.pathname.startsWith('/api/')) {
           return new Response(JSON.stringify({ offline: true }), {
