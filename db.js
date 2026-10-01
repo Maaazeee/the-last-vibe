@@ -375,30 +375,46 @@ class PostgresStore {
   }
 
   async addReaction(caseId, voter, emoji, comment) {
-    await this.pool.query(
-      `INSERT INTO reactions (case_id, voter, emoji, comment)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (case_id, voter) DO UPDATE SET
-         emoji = $3,
-         comment = COALESCE($4, reactions.comment),
-         created_at = now()`,
-      [caseId, voter, emoji || null, comment || null]
-    );
+    // emoji === undefined → commentaire seul : l'emoji déjà posé est conservé
+    if (emoji === undefined) {
+      await this.pool.query(
+        `INSERT INTO reactions (case_id, voter, comment)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (case_id, voter) DO UPDATE SET
+           comment = COALESCE(EXCLUDED.comment, reactions.comment),
+           created_at = now()`,
+        [caseId, voter, comment || null]
+      );
+    } else {
+      await this.pool.query(
+        `INSERT INTO reactions (case_id, voter, emoji, comment)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (case_id, voter) DO UPDATE SET
+           emoji = EXCLUDED.emoji,
+           comment = COALESCE(EXCLUDED.comment, reactions.comment),
+           created_at = now()`,
+        [caseId, voter, emoji || null, comment || null]
+      );
+    }
     return this.getReactions(caseId);
   }
 
   async getReactions(caseId) {
     const { rows } = await this.pool.query(
-      'SELECT emoji, comment, created_at FROM reactions WHERE case_id = $1 ORDER BY created_at DESC',
+      `SELECT r.emoji, r.comment, r.created_at, u.name AS user_name
+         FROM reactions r
+         LEFT JOIN users u ON u.voter = r.voter
+        WHERE r.case_id = $1
+        ORDER BY r.created_at DESC`,
       [caseId]
     );
     const counts = {};
     const comments = [];
     for (const r of rows) {
       if (r.emoji) counts[r.emoji] = (counts[r.emoji] || 0) + 1;
-      if (r.comment) comments.push({ comment: r.comment, at: r.created_at });
+      if (r.comment) comments.push({ comment: r.comment, at: r.created_at, author: r.user_name || 'Anonyme' });
     }
-    return { counts, comments: comments.slice(0, 5) };
+    return { counts, comments: comments.slice(0, 30) };
   }
 
   async incrementShare(caseId) {
@@ -726,7 +742,9 @@ class MemoryStore {
     const rm = this.reactions.get(caseId) || new Map();
     const old = rm.get(voter) || {};
     rm.set(voter, {
-      emoji: emoji || old.emoji || null,
+      // emoji undefined → commentaire seul, l'emoji existant est conservé ;
+      // emoji null explicite → efface l'emoji (désélection)
+      emoji: emoji === undefined ? (old.emoji || null) : emoji,
       comment: comment || old.comment || null,
       at: new Date(),
     });
@@ -736,13 +754,16 @@ class MemoryStore {
 
   async getReactions(caseId) {
     const rm = this.reactions.get(caseId) || new Map();
+    // voter → nom du compte lié (sinon « Anonyme »)
+    const names = new Map();
+    for (const u of this.users.values()) if (u.voter) names.set(u.voter, u.name);
     const counts = {};
     const comments = [];
-    for (const r of rm.values()) {
+    for (const [voter, r] of rm.entries()) {
       if (r.emoji) counts[r.emoji] = (counts[r.emoji] || 0) + 1;
-      if (r.comment) comments.push({ comment: r.comment, at: r.at });
+      if (r.comment) comments.push({ comment: r.comment, at: r.at, author: names.get(voter) || 'Anonyme' });
     }
-    return { counts, comments: comments.slice(0, 5) };
+    return { counts, comments: comments.slice(0, 30) };
   }
 
   async incrementShare(caseId) {

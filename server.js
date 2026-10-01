@@ -481,11 +481,17 @@ app.post('/api/cases', async (req, res) => {
   }
 
   try {
+    // anonyme par défaut ; le nom n'est révélé que si la case « anon » est
+    // décochée ET qu'une session de compte est présente (jamais de pseudo
+    // accepté côté client).
+    const wantName = (req.body && req.body.anonymous === false) && req.tlvUser && req.tlvUser.name;
     const c = await store.createCase({
       title: generateTitle(text),
       text,
       verdict: generateVerdict(text),
-      author: 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
+      author: wantName
+        ? String(req.tlvUser.name).slice(0, 40)
+        : 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
     });
     broadcast({ type: 'newcase', id: c.id });
     res.status(201).json({ case: c });
@@ -539,13 +545,22 @@ app.get('/api/week', async (req, res) => {
    API — RÉACTIONS, PARTAGE, SIGNALEMENT
 --------------------------------------------------------------------- */
 app.post('/api/cases/:id/react', async (req, res) => {
-  const { emoji, comment } = req.body || {};
+  const body = req.body || {};
+  const hasEmoji = 'emoji' in body;
+  const { comment } = body;
+  const commentTxt = typeof comment === 'string' ? comment.trim().slice(0, 140) : null;
+
+  // le fil du prétoire est réservé aux comptes connectés (les émojis restent ouverts)
+  if (commentTxt && !req.tlvUser) {
+    return res.status(401).json({ error: 'Connectez-vous pour rejoindre la discussion.' });
+  }
   try {
     if (!await store.getCase(req.params.id)) return res.status(404).json({ error: 'Cas introuvable' });
     const reactions = await store.addReaction(
       req.params.id, voterId(req),
-      typeof emoji === 'string' ? emoji.slice(0, 4) : null,
-      typeof comment === 'string' ? comment.trim().slice(0, 140) : null
+      // emoji absent = on ne touche pas à l'emoji déjà posé par ce voter
+      hasEmoji ? (typeof body.emoji === 'string' ? body.emoji.slice(0, 4) : null) : undefined,
+      commentTxt
     );
     broadcast({ type: 'reaction', caseId: req.params.id });
     res.json({ ok: true, reactions });

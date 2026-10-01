@@ -332,17 +332,17 @@
         <div class="mb-6 text-center">
           <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Appel public</p>
           <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
-            Déposez votre <span class="grad-text">plainte</span>.
+            Raconte ton <span class="grad-text">crime</span>.
           </h2>
           <p class="mt-2 text-sm text-white/45">
-            Confessez votre petit crime du quotidien. Anonymat garanti*.
+            1. Tu écris ton histoire (280 caractères) → 2. le Juge Suprême rédige la sentence →
+            3. la communauté tranche 🔥 Coupable ou 👑 Innocent.
           </p>
-          <p class="mt-1 text-[10px] text-white/25">*« garanti » dans le sens où on n'a pas de tiers à qui le dire.</p>
         </div>
 
         <div class="glass rounded-3xl p-5 sm:p-7 animate-up">
           <label for="case-input" class="mb-2 block text-sm font-semibold text-white/70">
-            🗣️ Qu'avez-vous fait ? (ou pas fait, c'est aussi un crime)
+            🗣️ Ton histoire : qu'as-tu fait (ou pas fait) ?
           </label>
           <textarea id="case-input" maxlength="280" rows="5" spellcheck="false"
             placeholder="Ex. : J'ai fait « oui oui » au téléphone alors que je n'écoutais RIEN de la conversation…"
@@ -353,10 +353,15 @@
             <span id="char-count" class="text-xs font-semibold text-white/40">0/280</span>
           </div>
 
+          <div id="submit-identity" class="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3"></div>
+
           <button id="submit-case" onclick="submitCase(event)" type="button"
             class="mt-5 w-full rounded-2xl bg-gradient-to-r from-violet2 to-blue2 py-3.5 font-display text-base font-bold text-white shadow-[0_10px_34px_-8px_rgba(139,92,246,.7)] transition hover:shadow-[0_14px_40px_-8px_rgba(139,92,246,.9)] active:scale-[.99]">
             ⚖️ Saisir le Tribunal
           </button>
+          <p class="mt-3 text-center text-[10px] text-white/25">
+            Ton pseudo n'apparaît sous l'histoire que si tu décoches « Poster anonymement ».
+          </p>
         </div>
       </div>
     </section>
@@ -468,15 +473,22 @@
           </p>
         </div>
 
-        <!-- Réactions + commentaires -->
+        <!-- Fil de discussion (thread) + réactions -->
         <div class="rounded-2xl border border-pink2/20 bg-pink2/[0.05] p-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink2">💬 Réactions du prétoire</p>
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink2">💬 Le fil du prétoire</p>
+            <span id="dl-thread-count" class="text-[10px] font-semibold text-white/35"></span>
+          </div>
           <div id="dl-reactions" class="mt-3 flex flex-wrap gap-2"></div>
-          <div class="mt-3 flex gap-2">
-            <input id="dl-comment-input" maxlength="140" placeholder="Une remarque cinglante (optionnelle)…"
+          <div id="dl-thread-input" class="mt-3 flex gap-2">
+            <input id="dl-comment-input" maxlength="140" placeholder="Donne ton avis sur cette histoire…"
               class="glass min-w-0 flex-1 rounded-xl border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white outline-none transition focus:border-pink2/60 placeholder:text-white/25" />
             <button onclick="sendComment()" class="rounded-xl bg-gradient-to-r from-violet2 to-pink2 px-4 text-xs font-bold text-white">Envoyer</button>
           </div>
+          <p id="dl-thread-login" class="hidden mt-3 rounded-xl bg-white/[0.04] px-3 py-2 text-xs text-white/50">
+            🔑 <button type="button" onclick="openAuth()" class="font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">Connecte-toi</button>
+            pour rejoindre la discussion — chaque avis est signé de ton pseudo.
+          </p>
           <div id="dl-comments" class="mt-3 space-y-2"></div>
         </div>
 
@@ -569,6 +581,10 @@
       dlReactions: $('#dl-reactions'),
       dlComments: $('#dl-comments'),
       commentInput: $('#dl-comment-input'),
+      threadInput: $('#dl-thread-input'),
+      threadLogin: $('#dl-thread-login'),
+      threadCount: $('#dl-thread-count'),
+      submitIdentity: $('#submit-identity'),
       // mur de la honte
       wallTop: $('#wall-top'),
       wallShame: $('#wall-shame'),
@@ -615,8 +631,10 @@
     }
     function timeLabel(c) {
       if (c.time) return c.time;
-      if (!c.created_at) return 'récemment';
-      const s = Math.max(1, Math.floor((Date.now() - new Date(c.created_at).getTime()) / 1000));
+      const ts = c.created_at || c.at;
+      if (!ts) return 'récemment';
+      const s = Math.max(1, Math.floor((Date.now() - new Date(ts).getTime()) / 1000));
+      if (!isFinite(s)) return 'récemment';
       if (s < 60) return 'à l’instant';
       if (s < 3600) return 'il y a ' + Math.floor(s / 60) + ' min';
       if (s < 86400) return 'il y a ' + Math.floor(s / 3600) + ' h';
@@ -814,6 +832,7 @@
           try {
             const msg = JSON.parse(ev.data);
             if (msg.type === 'votes') applyLiveVotes(msg.caseId, msg.guilty, msg.innocent);
+            if (msg.type === 'reaction') refreshThread(msg.caseId);
           } catch (_) {}
         };
         liveES.onerror = () => {
@@ -845,6 +864,18 @@
       if (state.openCaseId === id) syncDetail();
       if (state.view === 'tribunal') updateVisibleCard(id);
       if (state.view === 'wall') renderWall();
+    }
+
+    /* Nouvel avis / réaction sur l'histoire détaillée : on refait le point. */
+    async function refreshThread(caseId) {
+      if (state.mode !== 'remote' || state.openCaseId !== caseId) return;
+      try {
+        const res = await fetchJson('/api/cases/' + encodeURIComponent(caseId));
+        if (res.reactions) {
+          state.reactions[caseId] = res.reactions;
+          renderReactions(caseId, res.reactions);
+        }
+      } catch (_) {}
     }
 
     function updateVisibleCard(id) {
@@ -904,10 +935,48 @@
       const q = readQueue();
       if (q.length) parts.push(`<span class="chip" style="background:rgba(255,177,55,.12);color:#ffd08a">⏳ ${q.length} en attente</span>`);
       els.profileStrip.innerHTML = parts.join('');
+      renderSubmitIdentity();
+      // le fil de discussion dépend du statut de connexion : on le redessine
+      if (state.openCaseId && state.reactions[state.openCaseId]) {
+        renderReactions(state.openCaseId, state.reactions[state.openCaseId]);
+      }
     }
 
-    /* Installable : PWA (Android/Desktop/Crépuscule) + guide iOS Safari */
+    /* Panneau « anonyme » du formulaire de publication. */
+    function renderSubmitIdentity() {
+      const box = els.submitIdentity;
+      if (!box) return;
+      const prev = document.getElementById('case-anon');
+      const checked = prev ? prev.checked : true;
+      if (state.mode === 'local') {
+        box.innerHTML = '<p class="text-xs text-white/45">📴 Mode démo : l’histoire reste sur cet appareil, publiée anonymement.</p>';
+        return;
+      }
+      if (state.user) {
+        box.innerHTML = `
+          <label class="flex cursor-pointer items-center gap-3">
+            <input type="checkbox" id="case-anon" ${checked ? 'checked' : ''} onchange="renderSubmitIdentity()"
+              style="accent-color:#8b5cf6" class="h-4 w-4 shrink-0" />
+            <span class="text-sm font-semibold text-white/80">☂️ Poster anonymement</span>
+          </label>
+          <p class="mt-1.5 pl-7 text-xs text-white/40">${checked
+            ? 'Ton pseudo restera masqué : l’histoire sera signée « Anonyme #… ».'
+            : 'Ton pseudo « ' + esc(state.user.name) + ' » sera visible sous l’histoire.'}</p>`;
+      } else {
+        const canLogin = state.providers.length || state.devLogin;
+        box.innerHTML = `
+          <p class="text-xs text-white/45">👓 Par défaut, les histoires sont publiées <strong class="text-white/75">anonymement</strong> (pseudo masqué).</p>
+          ${canLogin ? `<button type="button" onclick="openAuth()"
+            class="mt-2 text-xs font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">🔑 Se connecter pour publier avec ton pseudo</button>` : ''}`;
+      }
+    }
+
+    /* Installable : PWA (Android/Desktop/Crépuscule) + guide iOS Safari.
+       En APK Capacitor, le bouton « Installer » n'a pas de sens : masqué. */
     function isStandalone() {
+      try {
+        if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) return true;
+      } catch (_) {}
       return window.matchMedia('(display-mode: standalone)').matches ||
         navigator.standalone === true;
     }
@@ -1333,7 +1402,10 @@
       state.openCaseId = id;
 
       els.dlChips.textContent = '⚖️ Dossier ' + abbreviate(c.id, 8) + ' · ' + timeLabel(c);
-      els.dlMeta.textContent = 'Déposé de manière anonyme par ' + (c.author || 'Anonyme');
+      const authorName = c.author || 'Anonyme';
+      els.dlMeta.textContent = /^Anonyme( #\d+)?$/.test(authorName)
+        ? 'Déposé de manière anonyme par ' + authorName
+        : 'Déposé par ' + authorName;
       els.dlText.textContent = c.text;
       els.dlComment.textContent = c.verdict.comment;
       els.dlCrime.textContent = c.verdict.crime;
@@ -1408,12 +1480,23 @@
           <span>${e}</span><span class="text-white/50">${data.counts[e] || 0}</span>
         </button>`).join('');
 
+      // le fil est réservé aux comptes connectés (démo locale : libre)
+      const canComment = state.mode === 'local' || !!state.user;
+      if (els.threadInput) els.threadInput.classList.toggle('hidden', !canComment);
+      if (els.threadLogin) els.threadLogin.classList.toggle('hidden', canComment);
+      const n = (data.comments || []).length;
+      if (els.threadCount) els.threadCount.textContent = n ? n + ' avis' : '';
+
       els.dlComments.innerHTML = (data.comments && data.comments.length)
         ? data.comments.map((c) => `
             <div class="rounded-xl bg-white/[0.04] px-3 py-2 text-xs text-white/70">
-              <span class="text-pink2/80">🗣️</span> ${esc(c.comment)}
+              <div class="mb-0.5 flex items-center gap-2">
+                <span class="font-semibold text-pink2/90">${esc(c.author || 'Anonyme')}</span>
+                <span class="text-[10px] text-white/30">${esc(timeLabel(c))}</span>
+              </div>
+              <p class="leading-relaxed">${esc(c.comment)}</p>
             </div>`).join('')
-        : '<p class="text-[11px] text-white/30">Pas encore de glose. Le silence est une forme de poésie.</p>';
+        : '<p class="text-[11px] text-white/30">Pas encore d’avis. Le silence est une forme de poésie — ou de lâcheté.</p>';
     }
 
     async function react(id, emoji) {
@@ -1448,6 +1531,7 @@
       const text = els.commentInput.value.trim();
       if (!id || !text) return;
       if (state.mode === 'remote') {
+        if (!state.user) { openAuth(); return; }
         try {
           const res = await fetchJson('/api/cases/' + encodeURIComponent(id) + '/react', {
             method: 'POST',
@@ -1456,11 +1540,13 @@
           state.reactions[id] = res.reactions;
           renderReactions(id, res.reactions);
           els.commentInput.value = '';
-          toast('💬 Glose déposée au dossier.');
-        } catch (_) { toast('⚠️ Impossible d’enregistrer (hors-ligne).'); }
+          toast('💬 Avis publié sur le fil — signé ' + state.user.name + '.');
+        } catch (err) {
+          toast('⚠️ ' + (err && err.message ? err.message : 'Impossible d’enregistrer (hors-ligne).'));
+        }
       } else {
         const d = state.reactions[id] || { counts: {}, comments: [] };
-        d.comments = [{ comment: text, at: new Date() }, ...(d.comments || [])].slice(0, 5);
+        d.comments = [{ comment: text, at: new Date(), author: 'Anonyme' }, ...(d.comments || [])].slice(0, 30);
         state.reactions[id] = d;
         renderReactions(id, d);
         els.commentInput.value = '';
@@ -1552,12 +1638,14 @@
     }
 
     async function finalizeSubmission(text) {
+      const anonBox = document.getElementById('case-anon');
+      const anonymous = !anonBox || anonBox.checked;
       let c;
       if (state.mode === 'remote') {
         try {
           const res = await fetchJson('/api/cases', {
             method: 'POST',
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ text, anonymous }),
             timeout: 10000,
           });
           c = res.case;
@@ -1570,7 +1658,7 @@
         // verdict local (mode démo)
         c = {
           id: uid(),
-          author: 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
+          author: (!anonymous && state.user) ? state.user.name : 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
           time: 'à l’instant',
           text,
           title: null,
