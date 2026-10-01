@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -269,21 +269,25 @@
           <h1 class="font-display text-lg font-bold tracking-tight">
             THE LAST <span class="grad-text">VIBE</span>
           </h1>
-          <p class="text-[11px] text-white/40">Le Tribunal du Quotidien</p>
+          <p class="text-[11px] text-white/40" data-i18n="tagline">Le Tribunal du Quotidien</p>
         </div>
       </div>
 
       <div class="hidden items-center gap-2 md:flex">
         <nav class="flex items-center gap-1">
-          <button class="nav-pill" data-nav="tribunal">🏛️ Le Tribunal</button>
-          <button class="nav-pill" data-nav="submit">✍️ Poster un cas</button>
-          <button class="nav-pill" data-nav="wall">🏆 Mur de la Honte</button>
+          <button class="nav-pill" data-nav="tribunal" data-i18n="nav.tribunal">🏛️ Le Tribunal</button>
+          <button class="nav-pill" data-nav="submit" data-i18n="nav.submit">✍️ Poster un cas</button>
+          <button class="nav-pill" data-nav="wall" data-i18n="nav.wall">🏆 Mur de la Honte</button>
         </nav>
       </div>
 
-      <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold glass text-green2/90">
-        <span class="live-dot"></span> Live
-      </span>
+      <div class="flex items-center gap-2">
+        <button id="lang-toggle" type="button" onclick="toggleLang()" title="Switch to English"
+          class="glass cursor-pointer rounded-full px-3 py-1.5 text-xs font-bold text-violet2 transition hover:text-white">🌐 FR</button>
+        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold glass text-green2/90">
+          <span class="live-dot"></span> <span data-i18n="live">Live</span>
+        </span>
+      </div>
     </div>
 
     <!-- bandeau profil : streak / points / badges -->
@@ -296,11 +300,11 @@
     <!-- ═══════════════ VUE : LE TRIBUNAL ═══════════════ -->
     <section id="view-tribunal" class="view">
       <div class="mb-5 text-center">
-        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Session en cours</p>
-        <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80" data-i18n="tribunal.kicker">Session en cours</p>
+        <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl" data-i18n-html="tribunal.title">
           Salut, <span class="grad-text">justicier</span>.
         </h2>
-        <p class="mx-auto mt-2 max-w-md text-sm text-white/45">
+        <p class="mx-auto mt-2 max-w-md text-sm text-white/45" data-i18n="tribunal.sub">
           Glisse les cas vers la droite (🔥 Coupable) ou la gauche (👑 Innocent).
           Le Juge Suprême observe et prend des notes.
         </p>
@@ -312,7 +316,7 @@
       <!-- Compteur + reset -->
       <div class="mb-4 flex items-center justify-between">
         <span id="stack-counter" class="chip">⚖️ 0 cas à juger</span>
-        <button onclick="resetVotes()" class="text-xs font-medium text-white/40 underline decoration-white/20 underline-offset-4 transition hover:text-white">
+        <button onclick="resetVotes()" data-i18n="tribunal.reset" class="text-xs font-medium text-white/40 underline decoration-white/20 underline-offset-4 transition hover:text-white">
           ↺ Recommencer le jugement
         </button>
       </div>
@@ -320,9 +324,9 @@
       <div id="card-stack" class="stack"></div>
 
       <div class="mt-4 flex items-center justify-center gap-6 text-[11px] font-semibold uppercase tracking-widest text-white/35">
-        <span class="text-green2/80">⟵ Innocent</span>
+        <span class="text-green2/80" data-i18n="tribunal.inno">⟵ Innocent</span>
         <span class="opacity-40">—</span>
-        <span class="text-red2/80">Coupable ⟶</span>
+        <span class="text-red2/80" data-i18n="tribunal.guilty">Coupable ⟶</span>
       </div>
     </section>
 
@@ -330,36 +334,36 @@
     <section id="view-submit" class="view hidden">
       <div class="mx-auto max-w-xl">
         <div class="mb-6 text-center">
-          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Appel public</p>
-          <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80" data-i18n="submit.kicker">Appel public</p>
+          <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl" data-i18n-html="submit.title">
             Raconte ton <span class="grad-text">crime</span>.
           </h2>
-          <p class="mt-2 text-sm text-white/45">
+          <p class="mt-2 text-sm text-white/45" data-i18n="submit.sub">
             1. Tu écris ton histoire (280 caractères) → 2. le Juge Suprême rédige la sentence →
             3. la communauté tranche 🔥 Coupable ou 👑 Innocent.
           </p>
         </div>
 
         <div class="glass rounded-3xl p-5 sm:p-7 animate-up">
-          <label for="case-input" class="mb-2 block text-sm font-semibold text-white/70">
+          <label for="case-input" class="mb-2 block text-sm font-semibold text-white/70" data-i18n="submit.label">
             🗣️ Ton histoire : qu'as-tu fait (ou pas fait) ?
           </label>
-          <textarea id="case-input" maxlength="280" rows="5" spellcheck="false"
+          <textarea id="case-input" maxlength="280" rows="5" spellcheck="false" data-i18n-ph="submit.ph"
             placeholder="Ex. : J'ai fait « oui oui » au téléphone alors que je n'écoutais RIEN de la conversation…"
             class="glass w-full resize-none rounded-2xl border-white/10 bg-white/[0.03] p-4 text-[15px] leading-relaxed text-white outline-none transition focus:border-violet2/60 focus:shadow-[0_0_24px_-6px_rgba(139,92,246,.6)] placeholder:text-white/25"></textarea>
 
           <div class="mt-2 flex items-center justify-between">
-            <p class="text-[11px] text-white/35">💡 Le Juge aime les détails sanglants.</p>
+            <p class="text-[11px] text-white/35" data-i18n="submit.hint">💡 Le Juge aime les détails sanglants.</p>
             <span id="char-count" class="text-xs font-semibold text-white/40">0/280</span>
           </div>
 
           <div id="submit-identity" class="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3"></div>
 
-          <button id="submit-case" onclick="submitCase(event)" type="button"
+          <button id="submit-case" onclick="submitCase(event)" type="button" data-i18n="submit.btn"
             class="mt-5 w-full rounded-2xl bg-gradient-to-r from-violet2 to-blue2 py-3.5 font-display text-base font-bold text-white shadow-[0_10px_34px_-8px_rgba(139,92,246,.7)] transition hover:shadow-[0_14px_40px_-8px_rgba(139,92,246,.9)] active:scale-[.99]">
             ⚖️ Saisir le Tribunal
           </button>
-          <p class="mt-3 text-center text-[10px] text-white/25">
+          <p class="mt-3 text-center text-[10px] text-white/25" data-i18n="submit.note">
             Ton pseudo n'apparaît sous l'histoire que si tu décoches « Poster anonymement ».
           </p>
         </div>
@@ -369,27 +373,27 @@
     <!-- ═══════════════ VUE : MUR DE LA HONTE ═══════════════ -->
     <section id="view-wall" class="view hidden">
       <div class="mb-6 text-center">
-        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80">Palmarès hebdomadaire</p>
-        <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-violet2/80" data-i18n="wall.kicker">Palmarès hebdomadaire</p>
+        <h2 class="font-display mt-2 text-3xl font-bold sm:text-4xl" data-i18n-html="wall.title">
           Le <span class="grad-text">mur de la honte</span>.
         </h2>
-        <p class="mt-2 text-sm text-white/45">
+        <p class="mt-2 text-sm text-white/45" data-i18n="wall.sub">
           Les affaires les plus jugées de la semaine et leurs scores. Cliquez sur un cas pour lire la sentence.
         </p>
       </div>
 
       <div class="mb-8">
-        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl">🔥 Les plus jugés</h3>
+        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl" data-i18n="wall.top">🔥 Les plus jugés</h3>
         <div id="wall-top" class="space-y-3"></div>
       </div>
 
       <div class="mb-8">
-        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl">🚨 Mauvaise foi maximaliste</h3>
+        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl" data-i18n="wall.shame">🚨 Mauvaise foi maximaliste</h3>
         <div id="wall-shame" class="space-y-3"></div>
       </div>
 
       <div>
-        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl">🏆 Top Justiciers de la semaine</h3>
+        <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-bold sm:text-xl" data-i18n="wall.contrib">🏆 Top Justiciers de la semaine</h3>
         <div id="wall-contributors" class="space-y-3"></div>
       </div>
     </section>
@@ -398,9 +402,9 @@
   <!-- ======== NAVIGATION BASSE (mobile) ======== -->
   <nav class="glass fixed inset-x-0 bottom-0 z-40 border-t border-white/10 px-2 pb-[env(safe-area-inset-bottom)] md:hidden">
     <div class="flex">
-      <button class="bottom-nav-item" data-nav="tribunal"><span class="ic">🏛️</span>Tribunal</button>
-      <button class="bottom-nav-item" data-nav="submit"><span class="ic">✍️</span>Poster</button>
-      <button class="bottom-nav-item" data-nav="wall"><span class="ic">🏆</span>La Honte</button>
+      <button class="bottom-nav-item" data-nav="tribunal"><span class="ic">🏛️</span><span data-i18n="navm.tribunal">Tribunal</span></button>
+      <button class="bottom-nav-item" data-nav="submit"><span class="ic">✍️</span><span data-i18n="navm.submit">Poster</span></button>
+      <button class="bottom-nav-item" data-nav="wall"><span class="ic">🏆</span><span data-i18n="navm.wall">La Honte</span></button>
     </div>
   </nav>
 
@@ -412,39 +416,43 @@
       <div class="animate-up space-y-5">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <span id="dl-chips" class="chip">⚖️ Dossier</span>
+            <span id="dl-chips" class="chip" data-i18n="detail.chip">⚖️ Dossier</span>
             <p id="dl-meta" class="mt-2 text-xs text-white/40"></p>
           </div>
           <div class="flex items-center gap-2">
-            <span id="dl-shares" class="chip" title="Partages">📤 0</span>
+            <span id="dl-shares" class="chip" data-i18n-title="detail.shares_title" title="Partages">📤 0</span>
             <button onclick="closeDetail()" class="glass flex h-9 w-9 items-center justify-center rounded-full text-white/60 transition hover:text-white" aria-label="Fermer">✕</button>
           </div>
         </div>
 
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2/80">Le crime exposé</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2/80" data-i18n="detail.crime_kicker">Le crime exposé</p>
           <p id="dl-text" class="font-display mt-2 text-xl leading-snug sm:text-2xl"></p>
+          <div id="dl-translate-row" class="mt-2 hidden">
+            <button id="dl-translate-btn" onclick="translateCurrent()"
+              class="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-violet2 transition hover:text-white">🌐 Traduire</button>
+          </div>
         </div>
 
         <div class="rounded-2xl border border-violet2/25 bg-violet2/[0.06] p-4">
           <p class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2">
-            ⚖️ Verdict du Juge Suprême
-            <span class="rounded-full bg-violet2/20 px-2 py-0.5 text-[9px] tracking-normal text-violet2">IA-X14 · confiance 98%</span>
+            <span data-i18n="detail.verdict">⚖️ Verdict du Juge Suprême</span>
+            <span class="rounded-full bg-violet2/20 px-2 py-0.5 text-[9px] tracking-normal text-violet2" data-i18n="detail.confidence">IA-X14 · confiance 98%</span>
           </p>
           <p id="dl-comment" class="mt-3 text-sm leading-relaxed text-white/85"></p>
-          <p class="mt-3 border-t border-white/10 pt-3 text-[10px] uppercase tracking-[0.18em] text-white/35">Moyens de preuve</p>
+          <p class="mt-3 border-t border-white/10 pt-3 text-[10px] uppercase tracking-[0.18em] text-white/35" data-i18n="detail.evidence">Moyens de preuve</p>
           <p id="dl-crime" class="mt-1 text-xs font-semibold text-white/60"></p>
         </div>
 
         <div class="rounded-2xl border border-blue2/25 bg-blue2/[0.05] p-4">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue2">☠️ La sentence</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue2" data-i18n="detail.sentence">☠️ La sentence</p>
           <p id="dl-sentence" class="mt-2 text-sm font-medium leading-relaxed text-white/90">“ <em></em> ”</p>
         </div>
 
         <!-- Votes -->
         <div class="space-y-3">
           <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/40">
-            <span>Le peuple a tranché</span>
+            <span data-i18n="detail.people">Le peuple a tranché</span>
             <span id="dl-total-votes">0 voix</span>
           </div>
 
@@ -468,7 +476,7 @@
             </div>
           </div>
 
-          <p id="dl-voted-note" class="hidden pt-1 text-center text-xs font-semibold text-white/40">
+          <p id="dl-voted-note" class="hidden pt-1 text-center text-xs font-semibold text-white/40" data-i18n="detail.voted">
             ✅ Verdict enregistré. Le Juge ne revient pas dessus.
           </p>
         </div>
@@ -476,26 +484,26 @@
         <!-- Fil de discussion (thread) + réactions -->
         <div class="rounded-2xl border border-pink2/20 bg-pink2/[0.05] p-4">
           <div class="flex items-center justify-between gap-2">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink2">💬 Le fil du prétoire</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-pink2" data-i18n="detail.thread">💬 Le fil du prétoire</p>
             <span id="dl-thread-count" class="text-[10px] font-semibold text-white/35"></span>
           </div>
           <div id="dl-reactions" class="mt-3 flex flex-wrap gap-2"></div>
           <div id="dl-thread-input" class="mt-3 flex gap-2">
-            <input id="dl-comment-input" maxlength="140" placeholder="Donne ton avis sur cette histoire…"
+            <input id="dl-comment-input" maxlength="140" data-i18n-ph="detail.comment_ph" placeholder="Donne ton avis sur cette histoire…"
               class="glass min-w-0 flex-1 rounded-xl border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white outline-none transition focus:border-pink2/60 placeholder:text-white/25" />
-            <button onclick="sendComment()" class="rounded-xl bg-gradient-to-r from-violet2 to-pink2 px-4 text-xs font-bold text-white">Envoyer</button>
+            <button onclick="sendComment()" data-i18n="detail.send" class="rounded-xl bg-gradient-to-r from-violet2 to-pink2 px-4 text-xs font-bold text-white">Envoyer</button>
           </div>
-          <p id="dl-thread-login" class="hidden mt-3 rounded-xl bg-white/[0.04] px-3 py-2 text-xs text-white/50">
+          <p id="dl-thread-login" data-i18n-html="detail.login_hint" class="hidden mt-3 rounded-xl bg-white/[0.04] px-3 py-2 text-xs text-white/50">
             🔑 <button type="button" onclick="openAuth()" class="font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">Connecte-toi</button>
             pour rejoindre la discussion — chaque avis est signé de ton pseudo.
           </p>
           <div id="dl-comments" class="mt-3 space-y-2"></div>
         </div>
 
-        <button onclick="shareCurrent()" id="dl-share-btn" class="glass w-full rounded-2xl py-3 text-sm font-semibold text-white/70 transition hover:text-white">
+        <button onclick="shareCurrent()" id="dl-share-btn" data-i18n="detail.share" class="glass w-full rounded-2xl py-3 text-sm font-semibold text-white/70 transition hover:text-white">
           📤 Partager ce verdict
         </button>
-        <button onclick="flagCurrent()" class="w-full py-1 text-center text-[11px] text-white/30 underline decoration-white/15 underline-offset-4 transition hover:text-white/60">
+        <button onclick="flagCurrent()" data-i18n="detail.flag" class="w-full py-1 text-center text-[11px] text-white/30 underline decoration-white/15 underline-offset-4 transition hover:text-white/60">
           🚩 Signaler un cas litigieux au greffe
         </button>
       </div>
@@ -510,8 +518,8 @@
       <div class="animate-up space-y-4">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2/80">Votre compte</p>
-            <h3 class="font-display mt-1 text-xl font-bold">Le greffe vous reconnaît</h3>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet2/80" data-i18n="auth.kicker">Votre compte</p>
+            <h3 class="font-display mt-1 text-xl font-bold" data-i18n="auth.title">Le greffe vous reconnaît</h3>
           </div>
           <button onclick="closeAuth()" class="glass flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/60 transition hover:text-white" aria-label="Fermer">✕</button>
         </div>
@@ -524,7 +532,7 @@
   <div id="judge-overlay" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 backdrop-blur-md">
     <div class="glass w-[min(92vw,320px)] rounded-3xl p-8 text-center">
       <div class="spinner mx-auto"></div>
-      <p class="font-display mt-5 text-lg font-bold">Le Juge Suprême délibère…</p>
+      <p class="font-display mt-5 text-lg font-bold" data-i18n="judge.title">Le Juge Suprême délibère…</p>
       <p id="judge-phase" class="mt-2 text-sm text-white/50">Ouverture du dossier…</p>
     </div>
   </div>
@@ -607,6 +615,10 @@
       devLogin: false,    // connexion de test activée côté serveur
       view: 'tribunal',
       openCaseId: null,
+      lang: 'fr',            // langue de l'interface ('fr' | 'en')
+      detailTranslated: false,
+      detailSource: null,    // { text, title, verdict } d'origine (jamais muté)
+      detailShown: null,     // ce qui est affiché (original ou traduction)
     };
 
     /* ---------------------------------------------------------------------
@@ -619,6 +631,431 @@
       { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]
     ));
 
+    /* ---------------------------------------------------------------------
+       3b. INTERNATIONALISATION (FR / EN) + TRADUCTION DES HISTOIRES
+    --------------------------------------------------------------------- */
+    const I18N = {
+      fr: {
+        'tagline': 'Le Tribunal du Quotidien',
+        'nav.tribunal': '🏛️ Le Tribunal',
+        'nav.submit': '✍️ Poster un cas',
+        'nav.wall': '🏆 Mur de la Honte',
+        'navm.tribunal': 'Tribunal',
+        'navm.submit': 'Poster',
+        'navm.wall': 'La Honte',
+        'live': 'Live',
+
+        'tribunal.kicker': 'Session en cours',
+        'tribunal.title': 'Salut, <span class="grad-text">justicier</span>.',
+        'tribunal.sub': 'Glisse les cas vers la droite (🔥 Coupable) ou la gauche (👑 Innocent). Le Juge Suprême observe et prend des notes.',
+        'tribunal.reset': '↺ Recommencer le jugement',
+        'tribunal.inno': '⟵ Innocent',
+        'tribunal.guilty': 'Coupable ⟶',
+        'stack.counter': '⚖️ {n} cas à juger',
+        'stack.empty_title': 'Tout a été jugé.',
+        'stack.empty_sub': 'Le Juge Suprême vide le prétoire. Balance un nouveau cas ou recommence la session.',
+        'stack.empty_btn': '✍️ Poster un cas',
+        'stack.empty_reset': '↺ Recommencer le jugement',
+
+        'submit.kicker': 'Appel public',
+        'submit.title': 'Raconte ton <span class="grad-text">crime</span>.',
+        'submit.sub': '1. Tu écris ton histoire (280 caractères) → 2. le Juge Suprême rédige la sentence → 3. la communauté tranche 🔥 Coupable ou 👑 Innocent.',
+        'submit.label': '🗣️ Ton histoire : qu’as-tu fait (ou pas fait) ?',
+        'submit.ph': 'Ex. : J’ai fait « oui oui » au téléphone alors que je n’écoutais RIEN de la conversation…',
+        'submit.hint': '💡 Le Juge aime les détails sanglants.',
+        'submit.btn': '⚖️ Saisir le Tribunal',
+        'submit.note': 'Ton pseudo n’apparaît sous l’histoire que si tu décoches « Poster anonymement ».',
+        'submit.local': '📴 Mode démo : l’histoire reste sur cet appareil, publiée anonymement.',
+        'submit.anon': '☂️ Poster anonymement',
+        'submit.anon_hidden': 'Ton pseudo restera masqué : l’histoire sera signée « Anonyme #… ».',
+        'submit.anon_visible': 'Ton pseudo « {name} » sera visible sous l’histoire.',
+        'submit.anon_note': '👓 Par défaut, les histoires sont publiées <strong class="text-white/75">anonymement</strong> (pseudo masqué).',
+        'submit.anon_login': '🔑 Se connecter pour publier avec ton pseudo',
+
+        'wall.kicker': 'Palmarès hebdomadaire',
+        'wall.title': 'Le <span class="grad-text">mur de la honte</span>.',
+        'wall.sub': 'Les affaires les plus jugées de la semaine et leurs scores. Cliquez sur un cas pour lire la sentence.',
+        'wall.top': '🔥 Les plus jugés',
+        'wall.shame': '🚨 Mauvaise foi maximaliste',
+        'wall.contrib': '🏆 Top Justiciers de la semaine',
+        'wall.empty_top': 'Pas encore de contribuables. Jugez quelque chose d’abord.',
+        'wall.empty_shame': 'Pas assez de scandale cette semaine. Le Juge s’ennuie.',
+        'wall.empty_contrib': 'Aucun verdict cette semaine. Les jurés font la grève des liesses.',
+        'wall.judgments': 'jugements',
+        'wall.justicer': '⚖️ Justicier #{id}',
+        'wall.magistrate': 'magistrat de la semaine',
+
+        'common.guilty': 'Coupable',
+      'common.innocent': 'Innocent',
+        'common.votes': 'voix',
+        'common.vote1': 'voix',
+      'daily.judge': 'Juger',
+      'card.daily': 'Cas du jour',
+        'card.dossier': 'Dossier #{id}',
+        'card.archives': '— archives confidentielles · {time}',
+        'card.see_title': 'Voir la sentence',
+        'card.read': '⚖️ Lire la sentence du Juge',
+        'card.pct_guilty': '{p}% coupable',
+        'card.swipe_left': 'glisse vers la gauche',
+        'card.swipe_right': 'glisse vers la droite',
+        'common.anon': 'Anonyme',
+        'common.voices': '{n} voix',
+
+        'detail.chip': '⚖️ Dossier',
+        'detail.shares_title': 'Partages',
+        'detail.by': 'Déposé par {name}',
+        'detail.by_anon': 'Déposé de manière anonyme par {name}',
+        'detail.crime_kicker': 'Le crime exposé',
+        'detail.verdict': '⚖️ Verdict du Juge Suprême',
+        'detail.confidence': 'IA-X14 · confiance 98%',
+        'detail.evidence': 'Moyens de preuve',
+        'detail.sentence': '☠️ La sentence',
+        'detail.people': 'Le peuple a tranché',
+        'detail.voted': '✅ Verdict enregistré. Le Juge ne revient pas dessus.',
+        'detail.thread': '💬 Le fil du prétoire',
+        'detail.comment_ph': 'Donne ton avis sur cette histoire…',
+        'detail.send': 'Envoyer',
+        'detail.login_hint': '🔑 <button type="button" onclick="openAuth()" class="font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">Connecte-toi</button> pour rejoindre la discussion — chaque avis est signé de ton pseudo.',
+        'detail.share': '📤 Partager ce verdict',
+        'detail.flag': '🚩 Signaler un cas litigieux au greffe',
+        'detail.translate': '🌐 Traduire',
+        'detail.show_original': '↩︎ Voir l’original',
+        'detail.translating': '⏳ Traduction…',
+        'thread.count': '{n} avis',
+        'thread.empty': 'Pas encore d’avis. Le silence est une forme de poésie — ou de lâcheté.',
+
+        'auth.kicker': 'Votre compte',
+        'auth.title': 'Le greffe vous reconnaît',
+        'auth.via': 'via {provider} · identité partagée sur tous vos appareils',
+        'auth.pts': '⚖️ {n} pts',
+        'auth.votes': '🗳️ {n} verdicts',
+        'auth.streak': '🔥 Série {n} j',
+        'auth.week': '🗞️ Ma semaine',
+        'auth.logout': '🔓 Se déconnecter',
+        'auth.continue': 'Continuer avec {provider}',
+        'auth.dev': '🧪 Compte de test (dev)',
+        'auth.intro': 'Un compte pour retrouver vos <strong class="text-white/85">série, points et badges</strong> sur tous vos appareils. La première connexion adopte automatiquement votre profil anonyme en cours.',
+        'auth.none': 'Aucun fournisseur configuré — voir README.md (GITHUB_/DISCORD_/GOOGLE_CLIENT_ID+SECRET).',
+        'auth.note': 'Aucun mot de passe. Le Tribunal ne voit que votre nom, votre avatar et votre identifiant public du fournisseur. Les statistiques sont rattachées à votre compte, pas au site tiers.',
+
+        'profile.connected_via': 'Connecté via {provider}',
+        'profile.login': '👤 Se connecter',
+        'profile.points': '⚖️ {n} pts de justice',
+        'profile.votes': '🗳️ {n} verdicts',
+        'profile.streak': '🔥 Série {n} j',
+        'profile.remote': '🌐 Tribunal connecté',
+        'profile.local': '📴 Mode démo (fichier local)',
+        'profile.offline': '📴 Hors-ligne',
+        'profile.install': '📲 Installer l’app',
+        'profile.week': '🗞️ Ma semaine',
+        'profile.pending': '⏳ {n} en attente',
+
+        'judge.title': 'Le Juge Suprême délibère…',
+        'judge.phases': ['Ouverture du dossier…', 'Interrogatoire des témoins (il n’y a personne)…', 'Consultation des jurisprudences absurdes…', 'Rédaction de la sentence au feutre doré…', 'Signature. Le tribunal savoure.'],
+
+        'time.recent': 'récemment',
+        'time.now': 'à l’instant',
+        'time.min': 'il y a {n} min',
+        'time.hour': 'il y a {n} h',
+        'time.day': 'il y a {n} j',
+
+        'toast.connected': '🌐 Tribunal connecté.',
+        'toast.waking': '⏳ Le tribunal se réveille — 2ᵉ tentative…',
+        'toast.unreachable': '📴 Serveur injoignable — mode démo local.',
+        'toast.installed': '✅ App installée. Rendez-vous au prétoire !',
+        'toast.offline_votes': '📴 Pas de réseau — les votes sont stockés localement.',
+        'toast.logout': '👋 Déconnecté. Retour à la vie anonyme.',
+        'toast.guilty': '🔥 Coupable. Le Juge approuve.',
+        'toast.innocent': '👑 Innocent. Le Juge râle.',
+        'toast.queued': '📴 Vote noté — synchronisé dès le retour du réseau.',
+        'toast.synced': '✅ {n} verdict(s) hors-ligne synchronisé(s).',
+        'toast.reset_remote': '↺ L’audience est redémarrée sur les archives.',
+        'toast.reset_offline': '↺ Impossible de recharger : mode hors-ligne.',
+        'toast.reset_local': '↺ Les archives sont réinitialisées. Refaire le monde.',
+        'toast.react_offline': '⚠️ Réaction non synchronisée (hors-ligne).',
+        'toast.comment': '💬 Avis publié sur le fil — signé {name}.',
+        'toast.comment_fail': 'Impossible d’enregistrer (hors-ligne).',
+        'toast.shared': '📤 Verdict partagé !',
+        'toast.copied': '📋 Lien + verdict copiés (partagez-le !)',
+        'toast.copy_fail': 'Copie impossible 😢',
+        'toast.tr_failed': 'traduction indisponible',
+        'toast.flagged': '🚩 Signalé. Un greffier va… enfin, quelqu’un va regarder.',
+        'toast.flag_offline': '⚠️ Signalement impossible (hors-ligne).',
+        'toast.flagged_local': '🚩 Signalé (en local, personne ne regarde vraiment).',
+        'toast.too_short': '⚠️ Votre crime manque de détails (12 caractères minimum).',
+        'toast.submitted': '⚖️ Nouveau cas déposé et jugé. Le verdict est prêt.',
+        'toast.week_offline': '📴 Le bilan de la semaine nécessite le tribunal connecté.',
+        'toast.server_unreachable': '⚠️ Serveur injoignable.',
+        'toast.week_copied': '🔗 Lien du bilan copié !',
+        'toast.welcome': '🎭 Bienvenue au prétoire, {name} ! Votre compte est rattaché à vos stats.',
+        'toast.auth_denied': '⚠️ Connexion refusée : {msg}',
+
+        'week.head_supreme': 'Juge Suprême au prétoire !',
+        'week.head': 'Ma saison au prétoire',
+        'week.text': '⚖️ {head}\n{n} verdict(s) cette semaine · {pct}% coupable · {days} j de série\n\n{url}',
+        'week.share_title': 'Ma semaine · The Last Vibe',
+
+        'share.headline': 'Un crime du quotidien jugé par la communauté',
+        'share.text': '⚖️ {headline}\n« {text} »\n\n☠️ Sentence : {sentence}\n🗳️ {pct}% Coupable\n\n{url}',
+        'share.copy_hint': ' (ouvrez via le serveur pour un lien social).',
+
+        'install.ios': 'Sur iPhone/iPad : menu Partager ➜ « Sur l’écran d’accueil »',
+        'install.tip': 'Astuce : menu du navigateur ➜ « Ajouter à l’écran d’accueil »',
+
+        'notif.title': '⚖️ Le prétoire ouvre !',
+        'notif.body': '🍿 Nouveau cas du jour. La communauté attend ton verdict.',
+
+        'lang.toggle_title': 'Switch to English',
+      },
+      en: {
+        'tagline': 'The Daily Tribunal',
+        'nav.tribunal': '🏛️ The Court',
+        'nav.submit': '✍️ Post a case',
+        'nav.wall': '🏆 Wall of Shame',
+        'navm.tribunal': 'Court',
+        'navm.submit': 'Post',
+        'navm.wall': 'The Shame',
+        'live': 'Live',
+
+        'tribunal.kicker': 'Session in progress',
+        'tribunal.title': 'Hi, <span class="grad-text">justice-seeker</span>.',
+        'tribunal.sub': 'Swipe cases right (🔥 Guilty) or left (👑 Innocent). The Supreme Judge watches and takes notes.',
+        'tribunal.reset': '↺ Restart the trial',
+        'tribunal.inno': '⟵ Innocent',
+        'tribunal.guilty': 'Guilty ⟶',
+        'stack.counter': '⚖️ {n} cases to judge',
+        'stack.empty_title': 'Everything has been judged.',
+        'stack.empty_sub': 'The Supreme Judge is clearing the courtroom. Drop a new case or restart the session.',
+        'stack.empty_btn': '✍️ Post a case',
+        'stack.empty_reset': '↺ Restart the trial',
+
+        'submit.kicker': 'Public appeal',
+        'submit.title': 'Tell your <span class="grad-text">crime</span>.',
+        'submit.sub': '1. Write your story (280 characters) → 2. The Supreme Judge writes the sentence → 3. The community decides 🔥 Guilty or 👑 Innocent.',
+        'submit.label': '🗣️ Your story: what did you do (or not do)?',
+        'submit.ph': 'E.g.: I said “yeah yeah” on the phone while listening to NOTHING of the conversation…',
+        'submit.hint': '💡 The Judge loves juicy details.',
+        'submit.btn': '⚖️ Submit to the Court',
+        'submit.note': 'Your nickname only appears under the story if you uncheck “Post anonymously”.',
+        'submit.local': '📴 Demo mode: the story stays on this device, published anonymously.',
+        'submit.anon': '☂️ Post anonymously',
+        'submit.anon_hidden': 'Your nickname stays hidden: the story will be signed “Anonymous #…”.',
+        'submit.anon_visible': 'Your nickname “{name}” will be visible under the story.',
+        'submit.anon_note': '👓 By default, stories are published <strong class="text-white/75">anonymously</strong> (nickname hidden).',
+        'submit.anon_login': '🔑 Log in to publish with your nickname',
+
+        'wall.kicker': 'Weekly leaderboard',
+        'wall.title': 'The <span class="grad-text">wall of shame</span>.',
+        'wall.sub': 'The most-judged cases of the week and their scores. Tap a case to read the sentence.',
+        'wall.top': '🔥 Most judged',
+        'wall.shame': '🚨 Maximum bad faith',
+        'wall.contrib': '🏆 Top Justiciers of the week',
+        'wall.empty_top': 'No contributors yet. Judge something first.',
+        'wall.empty_shame': 'Not enough scandal this week. The Judge is bored.',
+        'wall.empty_contrib': 'No verdict this week. The jurors are on a joy strike.',
+        'wall.judgments': 'judgments',
+        'wall.justicer': '⚖️ Justicier #{id}',
+        'wall.magistrate': 'magistrate of the week',
+
+        'common.guilty': 'Guilty',
+      'common.innocent': 'Innocent',
+        'common.votes': 'votes',
+        'common.vote1': 'vote',
+      'daily.judge': 'Judge',
+      'card.daily': 'Case of the day',
+        'card.dossier': 'File #{id}',
+        'card.archives': '— confidential archives · {time}',
+        'card.see_title': 'See the sentence',
+        'card.read': '⚖️ Read the Judge’s sentence',
+        'card.pct_guilty': '{p}% guilty',
+        'card.swipe_left': 'swipe left',
+        'card.swipe_right': 'swipe right',
+        'common.anon': 'Anonymous',
+        'common.voices': '{n} votes',
+
+        'detail.chip': '⚖️ File',
+        'detail.shares_title': 'Shares',
+        'detail.by': 'Posted by {name}',
+        'detail.by_anon': 'Posted anonymously by {name}',
+        'detail.crime_kicker': 'The exposed crime',
+        'detail.verdict': '⚖️ Verdict of the Supreme Judge',
+        'detail.confidence': 'AI-X14 · 98% confidence',
+        'detail.evidence': 'Evidence',
+        'detail.sentence': '☠️ The sentence',
+        'detail.people': 'The people have ruled',
+        'detail.voted': '✅ Verdict recorded. The Judge does not go back on it.',
+        'detail.thread': '💬 The courtroom thread',
+        'detail.comment_ph': 'Share your take on this story…',
+        'detail.send': 'Send',
+        'detail.login_hint': '🔑 <button type="button" onclick="openAuth()" class="font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">Log in</button> to join the discussion — every comment is signed with your nickname.',
+        'detail.share': '📤 Share this verdict',
+        'detail.flag': '🚩 Report a contentious case to the clerk',
+        'detail.translate': '🌐 Translate',
+        'detail.show_original': '↩︎ Show original',
+        'detail.translating': '⏳ Translating…',
+        'thread.count': '{n} comments',
+        'thread.empty': 'No comments yet. Silence is a form of poetry — or cowardice.',
+
+        'auth.kicker': 'Your account',
+        'auth.title': 'The clerk recognises you',
+        'auth.via': 'via {provider} · identity shared across all your devices',
+        'auth.pts': '⚖️ {n} pts',
+        'auth.votes': '🗳️ {n} verdicts',
+        'auth.streak': '🔥 Streak {n} d',
+        'auth.week': '🗞️ My week',
+        'auth.logout': '🔓 Log out',
+        'auth.continue': 'Continue with {provider}',
+        'auth.dev': '🧪 Test account (dev)',
+        'auth.intro': 'An account to keep your <strong class="text-white/85">streak, points and badges</strong> on all your devices. The first login automatically adopts your current anonymous profile.',
+        'auth.none': 'No provider configured — see README.md (GITHUB_/DISCORD_/GOOGLE_CLIENT_ID+SECRET).',
+        'auth.note': 'No password. The Court only sees your name, avatar and public provider ID. Stats are tied to your account, not to the third-party site.',
+
+        'profile.connected_via': 'Connected via {provider}',
+        'profile.login': '👤 Log in',
+        'profile.points': '⚖️ {n} justice pts',
+        'profile.votes': '🗳️ {n} verdicts',
+        'profile.streak': '🔥 Streak {n} d',
+        'profile.remote': '🌐 Court connected',
+        'profile.local': '📴 Demo mode (local file)',
+        'profile.offline': '📴 Offline',
+        'profile.install': '📲 Install the app',
+        'profile.week': '🗞️ My week',
+        'profile.pending': '⏳ {n} pending',
+
+        'judge.title': 'The Supreme Judge is deliberating…',
+        'judge.phases': ['Opening the file…', 'Interrogating the witnesses (there are none)…', 'Consulting absurd case law…', 'Writing the sentence in golden felt-tip…', 'Signed. The court savours it.'],
+
+        'time.recent': 'recently',
+        'time.now': 'just now',
+        'time.min': '{n} min ago',
+        'time.hour': '{n} h ago',
+        'time.day': '{n} d ago',
+
+        'toast.connected': '🌐 Court connected.',
+        'toast.waking': '⏳ The court is waking up — attempt 2…',
+        'toast.unreachable': '📴 Server unreachable — local demo mode.',
+        'toast.installed': '✅ App installed. See you in the courtroom!',
+        'toast.offline_votes': '📴 No network — votes are stored locally.',
+        'toast.logout': '👋 Logged out. Back to anonymous life.',
+        'toast.guilty': '🔥 Guilty. The Judge approves.',
+        'toast.innocent': '👑 Innocent. The Judge grumbles.',
+        'toast.queued': '📴 Vote noted — synced when the network returns.',
+        'toast.synced': '✅ {n} offline verdict(s) synced.',
+        'toast.reset_remote': '↺ The hearing restarted from the archives.',
+        'toast.reset_offline': '↺ Could not reload: offline mode.',
+        'toast.reset_local': '↺ The archives are reset. Remake the world.',
+        'toast.react_offline': '⚠️ Reaction not synced (offline).',
+        'toast.comment': '💬 Comment posted to the thread — signed {name}.',
+        'toast.comment_fail': 'Could not save (offline).',
+        'toast.shared': '📤 Verdict shared!',
+        'toast.copied': '📋 Link + verdict copied (share it!)',
+        'toast.copy_fail': 'Copy failed 😢',
+        'toast.tr_failed': 'translation unavailable',
+        'toast.flagged': '🚩 Reported. A clerk will… well, someone will look.',
+        'toast.flag_offline': '⚠️ Report failed (offline).',
+        'toast.flagged_local': '🚩 Reported (locally, no one really looks).',
+        'toast.too_short': '⚠️ Your crime lacks detail (minimum 12 characters).',
+        'toast.submitted': '⚖️ New case filed and judged. The verdict is ready.',
+        'toast.week_offline': '📴 The weekly recap requires the court to be connected.',
+        'toast.server_unreachable': '⚠️ Server unreachable.',
+        'toast.week_copied': '🔗 Recap link copied!',
+        'toast.welcome': '🎭 Welcome to the courtroom, {name}! Your account is linked to your stats.',
+        'toast.auth_denied': '⚠️ Login refused: {msg}',
+
+        'week.head_supreme': 'Supreme Judge in the courtroom!',
+        'week.head': 'My season in the courtroom',
+        'week.text': '⚖️ {head}\n{n} verdict(s) this week · {pct}% guilty · {days} d streak\n\n{url}',
+        'week.share_title': 'My week · The Last Vibe',
+
+        'share.headline': 'An everyday crime judged by the community',
+        'share.text': '⚖️ {headline}\n“{text}”\n\n☠️ Sentence: {sentence}\n🗳️ {pct}% Guilty\n\n{url}',
+        'share.copy_hint': ' (open via the server for a social link).',
+
+        'install.ios': 'On iPhone/iPad: Share menu ➜ “Add to Home Screen”',
+        'install.tip': 'Tip: browser menu ➜ “Add to Home Screen”',
+
+        'notif.title': '⚖️ The courtroom opens!',
+        'notif.body': '🍿 New case of the day. The community awaits your verdict.',
+
+        'lang.toggle_title': 'Passer en français',
+      },
+    };
+
+    const BADGE_LABELS_EN = {
+      'Recrue du prétoire': 'Rookie of the bar',
+      'Greffier': 'Clerk',
+      'Bourreau': 'Executioner',
+      'Juge Suprême': 'Supreme Judge',
+      'Enchaîné': 'Chained',
+      'Inarrêtable': 'Unstoppable',
+    };
+
+    const LANG_KEY = 'tlv_lang';
+    function initialLang() {
+      try {
+        const saved = localStorage.getItem(LANG_KEY);
+        if (saved === 'fr' || saved === 'en') return saved;
+      } catch (_) {}
+      return (navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+    }
+    function t(key, vars) {
+      const dict = I18N[state.lang] || I18N.fr;
+      let s = dict[key] != null ? dict[key] : (I18N.fr[key] != null ? I18N.fr[key] : key);
+      if (typeof s !== 'string') return s;
+      if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? String(vars[k]) : m));
+      return s;
+    }
+    function badgeLabel(name) {
+      return state.lang === 'en' ? (BADGE_LABELS_EN[name] || name) : name;
+    }
+    /* Le pseudo anonyme est généré par le serveur en français : on le
+       réécrit dans la langue de l'interface quand il correspond. */
+    function displayAuthor(name) {
+      const n = String(name || '').trim();
+      const m = /^Anonyme( #\d+)?$/.exec(n) || /^Anonymous( #\d+)?$/.exec(n);
+      if (m) return t('common.anon') + (m[1] || '');
+      return n || t('common.anon');
+    }
+    function applyStaticI18n() {
+      $$('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+      $$('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+      $$('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+      $$('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+    }
+    function updateLangToggle() {
+      const btn = document.getElementById('lang-toggle');
+      if (!btn) return;
+      btn.textContent = '🌐 ' + (state.lang === 'fr' ? 'FR' : 'EN');
+      btn.title = t('lang.toggle_title');
+    }
+    function setLang(lang) {
+      state.lang = lang === 'en' ? 'en' : 'fr';
+      try { localStorage.setItem(LANG_KEY, state.lang); } catch (_) {}
+      document.documentElement.lang = state.lang;
+      applyStaticI18n();
+      updateLangToggle();
+      renderProfile();
+      renderDailyBanner();
+      if (state.view === 'tribunal') renderStack();
+      if (state.view === 'wall') renderWall();
+      const authOv = document.getElementById('auth-overlay');
+      if (authOv && !authOv.classList.contains('hidden')) renderAuthModal();
+      if (state.openCaseId) {
+        const c0 = byId(state.openCaseId);
+        if (c0) els.dlShares.textContent = '📤 ' + Number(c0.share_count || 0).toLocaleString(state.lang === 'fr' ? 'fr-FR' : 'en-US');
+        if (state.detailTranslated) translateCurrent();
+        else renderDetailBody(state.detailShown);
+        renderReactions(state.openCaseId, state.reactions[state.openCaseId]);
+        syncDetail();
+        updateTranslateButton();
+      }
+    }
+    function toggleLang() { setLang(state.lang === 'fr' ? 'en' : 'fr'); }
+
+    /* "1 vote" / "2 votes" — l'anglais exige le singulier. */
+    function votesLabel(n) {
+      return Number(n).toLocaleString(state.lang === 'fr' ? 'fr-FR' : 'en-US') + ' ' + t(Number(n) === 1 ? 'common.vote1' : 'common.votes');
+    }
     function pctGuilty(g, i) {
       const t = Number(g) + Number(i);
       return t ? Math.round((Number(g) / t) * 100) : 50;
@@ -630,15 +1067,18 @@
       return state.cases.find((c) => c.id === id);
     }
     function timeLabel(c) {
-      if (c.time) return c.time;
+      if (c.ago != null) {
+        const m = Number(c.ago);
+        return m < 60 ? t('time.min', { n: m }) : t('time.hour', { n: Math.round(m / 60) });
+      }      if (c.time) return c.time;
       const ts = c.created_at || c.at;
-      if (!ts) return 'récemment';
+      if (!ts) return t('time.recent');
       const s = Math.max(1, Math.floor((Date.now() - new Date(ts).getTime()) / 1000));
-      if (!isFinite(s)) return 'récemment';
-      if (s < 60) return 'à l’instant';
-      if (s < 3600) return 'il y a ' + Math.floor(s / 60) + ' min';
-      if (s < 86400) return 'il y a ' + Math.floor(s / 3600) + ' h';
-      return 'il y a ' + Math.floor(s / 86400) + ' j';
+      if (!isFinite(s)) return t('time.recent');
+      if (s < 60) return t('time.now');
+      if (s < 3600) return t('time.min', { n: Math.floor(s / 60) });
+      if (s < 86400) return t('time.hour', { n: Math.floor(s / 3600) });
+      return t('time.day', { n: Math.floor(s / 86400) });
     }
 
     /* ---------------------------------------------------------------------
@@ -666,8 +1106,15 @@
     /* ---------------------------------------------------------------------
        5. MODE DÉMO (sans serveur) — données + logique locales
     --------------------------------------------------------------------- */
-    function localSeed() {
-      const raws = [
+    /* Les données de démo stockent "il y a 12 min" : on n'en garde que le
+       nombre de minutes pour pouvoir l'afficher dans la langue courante. */
+    function minutesAgo(str) {
+      const m = /(\d+)\s*(min|h)/.exec(String(str || ''));
+      if (!m) return 0;
+      return Number(m[1]) * (m[2] === 'h' ? 60 : 1);
+    }
+
+    function localSeed() {      const raws = [
         { author: 'Anonyme #007', time: 'il y a 12 min', g: 312, i: 148,
           text: 'J’ai mangé la dernière part de gâteau à minuit sans rien dire… et j’ai laissé une note anonyme à ma colocataire. La note disait : « le gâteau est parti vivre ailleurs ».',
           verdict: { comment: 'Manger n’est pas un crime. Manger ET inventer un départ émotionnel pour un gâteau, c’est du vol avec finesse scénaristique. Vous avez l’étoffe d’un dealer de frigo.', crime: 'soustraction qualifiée d’un dessert avec récit d’exil', sentence: 'Condamné à remplacer le gâteau par un « bonjour » enrobé de culpabilité, et 48 h de jeûne médiatique.' } },
@@ -703,7 +1150,7 @@
       state.cases = raws.map((r, i) => ({
         id: 'c' + (i + 1),
         author: r.author,
-        time: r.time,
+        ago: minutesAgo(r.time),
         text: r.text,
         title: null,
         guilty: r.g,
@@ -795,17 +1242,17 @@
           await refreshMe();
           startLive();
           flushQueue();
-          if (waited && !quiet) toast('🌐 Tribunal connecté.');
+          if (waited && !quiet) toast(t('toast.connected'));
           return true;
         } catch (_) {
           if (attempt === 0) {
-            if (!quiet) toast('⏳ Le tribunal se réveille — 2ᵉ tentative…');
+            if (!quiet) toast(t('toast.waking'));
             waited = true;
             await new Promise((r) => setTimeout(r, 1200));
           }
         }
       }
-      if (!quiet) toast('📴 Serveur injoignable — mode démo local.');
+      if (!quiet) toast(t('toast.unreachable'));
       return false;
     }
 
@@ -886,7 +1333,7 @@
       const p = pctGuilty(c.guilty, c.innocent);
       const chip = card.querySelector('.pct-chip');
       if (chip) {
-        chip.textContent = p + '% coupable';
+        chip.textContent = t('card.pct_guilty', { p });
         chip.className = 'pct-chip text-[10px] font-bold ' + (p >= 50 ? 'text-red2' : 'text-green2');
       }
     }
@@ -920,20 +1367,20 @@
         const av = state.user.avatar
           ? `<img src="${esc(state.user.avatar)}" alt="" class="h-4 w-4 rounded-full object-cover" style="display:inline-block;vertical-align:-2px" />`
           : '👤';
-        parts.unshift(`<button data-act="account" class="chip cursor-pointer" style="border:1px solid rgba(22,217,135,.5);color:#8df0c6" title="Connecté via ${esc(state.user.provider)}">${av} ${esc(state.user.name)}</button>`);
+        parts.unshift(`<button data-act="account" class="chip cursor-pointer" style="border:1px solid rgba(22,217,135,.5);color:#8df0c6" title="${esc(t('profile.connected_via', { provider: state.user.provider }))}">${av} ${esc(state.user.name)}</button>`);
       } else if (state.mode === 'remote' && (state.providers.length || state.devLogin)) {
-        parts.unshift(`<button data-act="login" class="chip cursor-pointer" style="border:1px solid rgba(255,255,255,.25);color:#e9e4d8">👤 Se connecter</button>`);
+        parts.unshift(`<button data-act="login" class="chip cursor-pointer" style="border:1px solid rgba(255,255,255,.25);color:#e9e4d8">${t('profile.login')}</button>`);
       }
-      if (m.points > 0) parts.push(`<span class="chip">⚖️ ${m.points} pts de justice</span>`);
-      parts.push(`<span class="chip">🗳️ ${m.votes} verdicts</span>`);
-      if (m.streak > 0) parts.push(`<span class="chip" style="background:rgba(22,217,135,.14);color:#8df0c6">🔥 Série ${m.streak} j</span>`);
-      m.badges.forEach((b) => parts.push(`<span class="chip" style="background:rgba(232,121,249,.12);color:#f0bcf6">${badgesMeta[b] || '🎖️'} ${b}</span>`));
-      parts.push(`<span class="chip" style="background:rgba(255,255,255,.06);color:#ffffff66">${state.mode === 'remote' ? '🌐 Tribunal connecté' : '📴 Mode démo (fichier local)'}</span>`);
-      if (navigator.onLine === false) parts.push(`<span class="chip" style="background:rgba(255,59,92,.14);color:#ff9db0">📴 Hors-ligne</span>`);
-      if (!isStandalone()) parts.push(`<button data-act="install" class="chip cursor-pointer" style="border:1px solid rgba(139,92,246,.5);color:#c4b5fd">📲 Installer l'app</button>`);
-      parts.push(`<button data-act="week" class="chip cursor-pointer" style="border:1px solid rgba(56,189,248,.5);color:#7dd3fc">🗞️ Ma semaine</button>`);
+      if (m.points > 0) parts.push(`<span class="chip">${t('profile.points', { n: m.points })}</span>`);
+      parts.push(`<span class="chip">${t('profile.votes', { n: m.votes })}</span>`);
+      if (m.streak > 0) parts.push(`<span class="chip" style="background:rgba(22,217,135,.14);color:#8df0c6">${t('profile.streak', { n: m.streak })}</span>`);
+      m.badges.forEach((b) => parts.push(`<span class="chip" style="background:rgba(232,121,249,.12);color:#f0bcf6">${badgesMeta[b] || '🎖️'} ${esc(badgeLabel(b))}</span>`));
+      parts.push(`<span class="chip" style="background:rgba(255,255,255,.06);color:#ffffff66">${state.mode === 'remote' ? t('profile.remote') : t('profile.local')}</span>`);
+      if (navigator.onLine === false) parts.push(`<span class="chip" style="background:rgba(255,59,92,.14);color:#ff9db0">${t('profile.offline')}</span>`);
+      if (!isStandalone()) parts.push(`<button data-act="install" class="chip cursor-pointer" style="border:1px solid rgba(139,92,246,.5);color:#c4b5fd">${t('profile.install')}</button>`);
+      parts.push(`<button data-act="week" class="chip cursor-pointer" style="border:1px solid rgba(56,189,248,.5);color:#7dd3fc">${t('profile.week')}</button>`);
       const q = readQueue();
-      if (q.length) parts.push(`<span class="chip" style="background:rgba(255,177,55,.12);color:#ffd08a">⏳ ${q.length} en attente</span>`);
+      if (q.length) parts.push(`<span class="chip" style="background:rgba(255,177,55,.12);color:#ffd08a">${t('profile.pending', { n: q.length })}</span>`);
       els.profileStrip.innerHTML = parts.join('');
       renderSubmitIdentity();
       // le fil de discussion dépend du statut de connexion : on le redessine
@@ -949,7 +1396,7 @@
       const prev = document.getElementById('case-anon');
       const checked = prev ? prev.checked : true;
       if (state.mode === 'local') {
-        box.innerHTML = '<p class="text-xs text-white/45">📴 Mode démo : l’histoire reste sur cet appareil, publiée anonymement.</p>';
+        box.innerHTML = '<p class="text-xs text-white/45">' + t('submit.local') + '</p>';
         return;
       }
       if (state.user) {
@@ -957,17 +1404,17 @@
           <label class="flex cursor-pointer items-center gap-3">
             <input type="checkbox" id="case-anon" ${checked ? 'checked' : ''} onchange="renderSubmitIdentity()"
               style="accent-color:#8b5cf6" class="h-4 w-4 shrink-0" />
-            <span class="text-sm font-semibold text-white/80">☂️ Poster anonymement</span>
+            <span class="text-sm font-semibold text-white/80">${t('submit.anon')}</span>
           </label>
           <p class="mt-1.5 pl-7 text-xs text-white/40">${checked
-            ? 'Ton pseudo restera masqué : l’histoire sera signée « Anonyme #… ».'
-            : 'Ton pseudo « ' + esc(state.user.name) + ' » sera visible sous l’histoire.'}</p>`;
+            ? t('submit.anon_hidden')
+            : t('submit.anon_visible', { name: esc(state.user.name) })}</p>`;
       } else {
         const canLogin = state.providers.length || state.devLogin;
         box.innerHTML = `
-          <p class="text-xs text-white/45">👓 Par défaut, les histoires sont publiées <strong class="text-white/75">anonymement</strong> (pseudo masqué).</p>
+          <p class="text-xs text-white/45">${t('submit.anon_note')}</p>
           ${canLogin ? `<button type="button" onclick="openAuth()"
-            class="mt-2 text-xs font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">🔑 Se connecter pour publier avec ton pseudo</button>` : ''}`;
+            class="mt-2 text-xs font-semibold text-violet2 underline decoration-violet2/40 underline-offset-4">${t('submit.anon_login')}</button>` : ''}`;
       }
     }
 
@@ -989,12 +1436,12 @@
       window.addEventListener('appinstalled', () => {
         deferredInstall = null;
         renderProfile();
-        toast('✅ App installée. Rendez-vous au prétoire !');
+        toast('✅ ' + t('toast.installed'));
       });
       window.addEventListener('online', () => renderProfile());
       window.addEventListener('offline', () => {
         renderProfile();
-        toast('📴 Pas de réseau — les votes sont stockés localement.');
+        toast('📴 ' + t('toast.offline_votes'));
       });
     }
     function triggerInstall() {
@@ -1004,9 +1451,7 @@
         return;
       }
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
-      toast(isIOS
-        ? 'Sur iPhone/iPad : menu Partager ➜ « Sur l’écran d’accueil »'
-        : 'Astuce : menu du navigateur ➜ « Ajouter à l’écran d’accueil »');
+      toast(isIOS ? t('install.ios') : t('install.tip'));
     }
     els.profileStrip.addEventListener('click', (e) => {
       if (e.target.closest('[data-act="install"]')) triggerInstall();
@@ -1046,7 +1491,7 @@
       state.user = null;
       await refreshMe();
       closeAuth();
-      toast('👋 Déconnecté. Retour à la vie anonyme.');
+      toast('👋 ' + t('toast.logout'));
     }
 
     function renderAuthModal() {
@@ -1061,50 +1506,56 @@
             ${av}
             <div class="min-w-0">
               <p class="truncate text-base font-bold text-white">${esc(u.name)}</p>
-              <p class="text-[10px] uppercase tracking-wider text-white/40">via ${esc(u.provider)} · identité partagée sur tous vos appareils</p>
+              <p class="text-[10px] uppercase tracking-wider text-white/40">${t('auth.via', { provider: esc(u.provider) })}</p>
             </div>
           </div>
           <div class="flex flex-wrap gap-2">
-            <span class="chip">⚖️ ${state.me.points || 0} pts</span>
-            <span class="chip">🗳️ ${state.me.votes || 0} verdicts</span>
-            <span class="chip" style="background:rgba(22,217,135,.14);color:#8df0c6">🔥 Série ${state.me.streak || 0} j</span>
+            <span class="chip">${t('auth.pts', { n: state.me.points || 0 })}</span>
+            <span class="chip">${t('auth.votes', { n: state.me.votes || 0 })}</span>
+            <span class="chip" style="background:rgba(22,217,135,.14);color:#8df0c6">${t('auth.streak', { n: state.me.streak || 0 })}</span>
           </div>
           <div class="space-y-2">
-            <button onclick="closeAuth(); shareWeek();" class="glass w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-white/10">🗞️ Ma semaine</button>
-            <button onclick="logoutAccount()" class="w-full rounded-2xl border border-red2/40 bg-red2/10 px-4 py-3 text-sm font-semibold text-[#ff9db0] transition hover:bg-red2/20">🔓 Se déconnecter</button>
+            <button onclick="closeAuth(); shareWeek();" class="glass w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-white/10">${t('auth.week')}</button>
+            <button onclick="logoutAccount()" class="w-full rounded-2xl border border-red2/40 bg-red2/10 px-4 py-3 text-sm font-semibold text-[#ff9db0] transition hover:border-red2/20">${t('auth.logout')}</button>
           </div>`;
         return;
       }
 
       const buttons = (state.providers || []).map((p) => `
         <button onclick="loginWith('${p.id}')" class="glass flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10">
-          <span class="text-lg">${p.icon}</span> Continuer avec ${p.label}
+          <span class="text-lg">${p.icon}</span> ${t('auth.continue', { provider: esc(p.label) })}
         </button>`).join('');
       const dev = state.devLogin ? `
-        <button onclick="loginWith('dev')" class="w-full rounded-2xl border border-dashed border-white/25 px-4 py-2.5 text-xs font-semibold text-white/50 transition hover:border-white/45 hover:text-white/75">🧪 Compte de test (dev)</button>` : '';
+        <button onclick="loginWith('dev')" class="w-full rounded-2xl border border-dashed border-white/25 px-4 py-2.5 text-xs font-semibold text-white/50 transition hover:border-white/45 hover:text-white/75">${t('auth.dev')}</button>` : '';
 
       body.innerHTML = `
-        <p class="text-sm leading-relaxed text-white/60">Un compte pour retrouver vos <strong class="text-white/85">série, points et badges</strong> sur tous vos appareils. La première connexion adopte automatiquement votre profil anonyme en cours.</p>
+        <p class="text-sm leading-relaxed text-white/60">${t('auth.intro')}</p>
         <div class="space-y-2">
-          ${buttons || '<p class="text-xs text-white/40">Aucun fournisseur configuré — voir README.md (GITHUB_/DISCORD_/GOOGLE_CLIENT_ID+SECRET).</p>'}
+          ${buttons || `<p class="text-xs text-white/40">${t('auth.none')}</p>`}
           ${dev}
         </div>
-        <p class="text-[10px] leading-relaxed text-white/35">Aucun mot de passe. Le Tribunal ne voit que votre nom, votre avatar et votre identifiant public du fournisseur. Les statistiques sont rattachées à votre compte, pas au site tiers.</p>`;
+        <p class="text-[10px] leading-relaxed text-white/35">${t('auth.note')}</p>`;
     }
 
     /* Bilan hebdomadaire partageable (og-image /og/week/:voter.png). */
     async function shareWeek() {
-      if (state.mode !== 'remote') { toast('📴 Le bilan de la semaine nécessite le tribunal connecté.'); return; }
+      if (state.mode !== 'remote') { toast('📴 ' + t('toast.week_offline')); return; }
       let w;
-      try { w = await fetchJson('/api/week'); } catch (_) { toast('⚠️ Serveur injoignable.'); return; }
+      try { w = await fetchJson('/api/week'); } catch (_) { toast('⚠️ ' + t('toast.server_unreachable')); return; }
       const myVoter = w.voter || voterId();
       const url = (API_BASE || location.origin || '') + '/w/' + encodeURIComponent(myVoter);
-      const head = w.badges.includes('👑 Juge Suprême') ? 'Juge Suprême au prétoire !' : 'Ma saison au prétoire';
-      const text = `⚖️ ${head}\n${w.votes} verdict(s) cette semaine · ${w.guilty + w.innocent ? Math.round((w.guilty / (w.guilty + w.innocent)) * 100) : 0}% coupable · ${w.activeDays} j de série\n\n${url}`;
+      const head = w.badges.includes('👑 Juge Suprême') ? t('week.head_supreme') : t('week.head');
+      const text = '⚖️ ' + t('week.text', {
+        head,
+        n: w.votes,
+        pct: w.guilty + w.innocent ? Math.round((w.guilty / (w.guilty + w.innocent)) * 100) : 0,
+        days: w.activeDays,
+        url,
+      });
       if (navigator.share) {
-        try { await navigator.share({ title: 'Ma semaine · The Last Vibe', text, url }); return; } catch (_) {}
+        try { await navigator.share({ title: t('week.share_title'), text, url }); return; } catch (_) {}
       }
-      try { await navigator.clipboard.writeText(url); toast('🔗 Lien du bilan copié !'); }
+      try { await navigator.clipboard.writeText(url); toast('🔗 ' + t('toast.week_copied')); }
       catch (_) { toast(url); }
     }
 
@@ -1143,7 +1594,7 @@
         if (el) flyOut(el, side);
         else renderStack();
       }
-      toast(side === 'guilty' ? '🔥 Coupable. Le Juge approuve.' : '👑 Innocent. Le Juge râle.');
+      toast(side === 'guilty' ? '🔥 ' + t('toast.guilty') : '👑 ' + t('toast.innocent'));
 
       // synchronisation serveur (ou local en mode démo)
       if (state.mode === 'remote') {
@@ -1180,7 +1631,7 @@
         q.push({ caseId, side, at: Date.now() });
         saveQueue(q);
       }
-      toast('📴 Vote noté — synchronisé dès le retour du réseau.');
+      toast('📴 ' + t('toast.queued'));
       renderProfile();
       flushQueue();
     }
@@ -1201,7 +1652,7 @@
       }
       saveQueue(kept);
       if (progress) {
-        toast('✅ ' + (q.length - kept.length) + ' verdict(s) hors-ligne synchronisé(s).');
+        toast('✅ ' + t('toast.synced', { n: q.length - kept.length }));
         refreshMe();
         if (state.view === 'wall') renderWall();
       }
@@ -1243,14 +1694,14 @@
       if (state.mode === 'remote') {
         // rechargement depuis le serveur (reset seulement visuel en démo)
         fetchJson('/api/cases?limit=50', { timeout: 6000 })
-          .then((r) => { state.cases = r.cases; renderStack(); toast('↺ L’audience est redémarrée sur les archives.'); })
-          .catch(() => toast('↺ Impossible de recharger : mode hors-ligne.'));
+          .then((r) => { state.cases = r.cases; renderStack(); toast('↺ ' + t('toast.reset_remote')); })
+          .catch(() => toast('↺ ' + t('toast.reset_offline')));
       } else {
         state.cases.forEach((c) => {
           c.guilty = c.base.guilty;
           c.innocent = c.base.innocent;
         });
-        toast('↺ Les archives sont réinitialisées. Refaire le monde.');
+        toast('↺ ' + t('toast.reset_local'));
         renderStack();
       }
     }
@@ -1267,31 +1718,31 @@
           class="daily-banner animate-up flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:brightness-110">
           <span class="text-2xl">📯</span>
           <span class="min-w-0 flex-1">
-            <span class="block text-[10px] font-bold uppercase tracking-[0.2em] text-violet2">Cas du jour</span>
+            <span class="block text-[10px] font-bold uppercase tracking-[0.2em] text-violet2">${t('card.daily')}</span>
             <span class="block truncate text-sm font-semibold text-white/90">“ ${abbreviate(esc(d.text), 80)} ”</span>
           </span>
-          <span class="shrink-0 text-violet2/80">→ Juger</span>
+          <span class="shrink-0 text-violet2/80">→ ${t('daily.judge')}</span>
         </button>`;
     }
 
     function renderStack() {
       const stack = state.cases.filter((c) => !state.voted[c.id]);
-      els.stackCounter.textContent = `⚖️ ${stack.length} cas à juger`;
+      els.stackCounter.textContent = t('stack.counter', { n: stack.length });
       els.cardStack.innerHTML = '';
 
       if (stack.length === 0) {
         els.cardStack.innerHTML = `
           <div class="glass animate-up flex h-full flex-col items-center justify-center rounded-3xl px-6 text-center">
             <p class="text-5xl">⚖️</p>
-            <h3 class="font-display mt-4 text-xl font-bold">Tout a été jugé.</h3>
+            <h3 class="font-display mt-4 text-xl font-bold">${t('stack.empty_title')}</h3>
             <p class="mt-2 max-w-[260px] text-sm text-white/45">
-              Le Juge Suprême vide le prétoire. Balance un nouveau cas ou recommence la session.
+              ${t('stack.empty_sub')}
             </p>
             <button onclick="switchView('submit')" class="mt-5 rounded-2xl bg-gradient-to-r from-violet2 to-blue2 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_-8px_rgba(139,92,246,.7)] transition hover:scale-[1.03]">
-              ✍️ Poster un cas
+              ${t('stack.empty_btn')}
             </button>
             <button onclick="resetVotes()" class="mt-3 text-xs font-medium text-white/40 underline underline-offset-4 hover:text-white">
-              ↺ Recommencer le jugement
+              ${t('stack.empty_reset')}
             </button>
           </div>`;
         return;
@@ -1313,33 +1764,33 @@
 
       div.innerHTML = `
         <div class="flex items-center justify-between gap-3">
-          <span class="chip">⚖️ ${isDaily ? 'Cas du jour' : 'Dossier #' + abbreviate(c.id, 8)}</span>
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-white/40">${abbreviate(esc(c.author || 'Anonyme'), 22)}</span>
+          <span class="chip">⚖️ ${isDaily ? t('card.daily') : t('card.dossier', { id: abbreviate(c.id, 8) })}</span>
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-white/40">${abbreviate(esc(displayAuthor(c.author)), 22)}</span>
         </div>
 
         <div class="flex flex-1 flex-col justify-center gap-3">
           <p class="font-display text-2xl leading-snug sm:text-3xl">“ ${esc(c.text)} ”</p>
-          <p class="text-[10px] uppercase tracking-[0.2em] text-white/30">— archives confidentielles · ${esc(timeLabel(c))}</p>
+          <p class="text-[10px] uppercase tracking-[0.2em] text-white/30">${esc(t('card.archives', { time: timeLabel(c) }))}</p>
         </div>
 
         <div class="flex items-center justify-between gap-2">
           <button onclick="openDetail('${c.id}')"
-            class="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-white/60 transition hover:text-white" title="Voir la sentence">
-            ⚖️ Lire la sentence du Juge
+            class="glass rounded-full px-3 py-1.5 text-[11px] font-semibold text-white/60 transition hover:text-white" title="${esc(t('card.see_title'))}">
+            ${t('card.read')}
           </button>
           <span class="pct-chip text-[10px] font-bold ${pctGuilty(g, i) >= 50 ? 'text-red2' : 'text-green2'}">
-            ${pctGuilty(g, i)}% coupable
+            ${t('card.pct_guilty', { p: pctGuilty(g, i) })}
           </span>
         </div>
 
         <div class="card-actions mt-4 grid grid-cols-2 gap-3">
           <button class="btn-vote btn-inno" onclick="vote('${c.id}','innocent')">
-            <span class="text-sm">👑 Innocent</span>
-            <span class="text-[10px] font-semibold text-white/70">glisse vers la gauche</span>
+            <span class="text-sm">👑 ${t('common.innocent')}</span>
+            <span class="text-[10px] font-semibold text-white/70">${t('card.swipe_left')}</span>
           </button>
           <button class="btn-vote btn-guilty" onclick="vote('${c.id}','guilty')">
-            <span class="text-sm">🔥 Coupable</span>
-            <span class="text-[10px] font-semibold text-white/70">glisse vers la droite</span>
+            <span class="text-sm">🔥 ${t('common.guilty')}</span>
+            <span class="text-[10px] font-semibold text-white/70">${t('card.swipe_right')}</span>
           </button>
         </div>`;
 
@@ -1401,16 +1852,12 @@
       if (!c) return;
       state.openCaseId = id;
 
-      els.dlChips.textContent = '⚖️ Dossier ' + abbreviate(c.id, 8) + ' · ' + timeLabel(c);
-      const authorName = c.author || 'Anonyme';
-      els.dlMeta.textContent = /^Anonyme( #\d+)?$/.test(authorName)
-        ? 'Déposé de manière anonyme par ' + authorName
-        : 'Déposé par ' + authorName;
-      els.dlText.textContent = c.text;
-      els.dlComment.textContent = c.verdict.comment;
-      els.dlCrime.textContent = c.verdict.crime;
-      els.dlSentence.innerHTML = `“ <em>${esc(c.verdict.sentence)}</em> ”`;
-      els.dlShares.textContent = '📤 ' + (Number(c.share_count || 0)).toLocaleString('fr-FR');
+      els.dlChips.textContent = t('detail.chip') + ' ' + abbreviate(c.id, 8) + ' · ' + timeLabel(c);
+      state.detailTranslated = false;
+      state.detailSource = snapshotCase(c);
+      state.detailShown = state.detailSource;
+      renderDetailBody(state.detailShown);
+      els.dlShares.textContent = '📤 ' + (Number(c.share_count || 0)).toLocaleString(state.lang === 'fr' ? 'fr-FR' : 'en-US');
 
       syncDetail();
       renderReactions(id, state.reactions[id]);
@@ -1420,12 +1867,21 @@
           const res = await fetchJson('/api/cases/' + encodeURIComponent(id));
           const fresh = res.case;
           const cur = byId(id);
-          if (cur) { cur.guilty = fresh.guilty; cur.innocent = fresh.innocent; cur.share_count = fresh.share_count; }
+          if (cur) { cur.guilty = fresh.guilty; cur.innocent = fresh.innocent; cur.share_count = fresh.share_count; cur.lang = fresh.lang; }
           if (res.reactions) { state.reactions[id] = res.reactions; renderReactions(id, res.reactions); }
-          if (state.openCaseId === id) { syncDetail(); els.dlShares.textContent = '📤 ' + Number(fresh.share_count || 0).toLocaleString('fr-FR'); }
+          if (state.openCaseId === id) {
+            if (cur && !state.detailTranslated) {
+              state.detailSource = snapshotCase(cur);
+              state.detailShown = state.detailSource;
+            }
+            renderDetailBody(state.detailShown);
+            syncDetail();
+            els.dlShares.textContent = '📤 ' + Number(fresh.share_count || 0).toLocaleString(state.lang === 'fr' ? 'fr-FR' : 'en-US');
+          }
         } catch (_) {}
       }
 
+      updateTranslateButton();
       els.detailOverlay.classList.remove('hidden');
       els.detailOverlay.classList.add('flex');
       document.body.style.overflow = 'hidden';
@@ -1442,18 +1898,23 @@
     function syncDetail() {
       const c = byId(state.openCaseId);
       if (!c) return;
+      const authorName = displayAuthor(c.author);
+      els.dlMeta.textContent = /^Anonyme( #\d+)?$/.test(c.author || '') || /^Anonymous( #\d+)?$/.test(c.author || '')
+        ? t('detail.by_anon', { name: authorName })
+        : t('detail.by', { name: authorName });
+      els.dlChips.textContent = t('detail.chip') + ' ' + abbreviate(c.id, 8) + ' · ' + timeLabel(c);
       const g = Number(c.guilty), i = Number(c.innocent);
       const p = pctGuilty(g, i);
       const total = g + i;
 
-      els.dlTotal.textContent = total.toLocaleString('fr-FR') + ' voix';
+      els.dlTotal.textContent = votesLabel(total);
       els.dlPctGuilty.textContent = p + '%';
       els.dlPctInno.textContent = (100 - p) + '%';
       els.dlBarGuilty.style.width = p + '%';
       els.dlBarInno.style.width = (100 - p) + '%';
 
-      els.dlBtnGuilty.innerHTML = '<span class="text-sm">🔥 Coupable</span><span class="text-[10px] font-semibold text-white/70">' + g.toLocaleString('fr-FR') + ' voix</span>';
-      els.dlBtnInno.innerHTML = '<span class="text-sm">👑 Innocent</span><span class="text-[10px] font-semibold text-white/70">' + i.toLocaleString('fr-FR') + ' voix</span>';
+      els.dlBtnGuilty.innerHTML = '<span class="text-sm">🔥 ' + t('common.guilty') + '</span><span class="text-[10px] font-semibold text-white/70">' + votesLabel(g) + '</span>';
+      els.dlBtnInno.innerHTML = '<span class="text-sm">👑 ' + t('common.innocent') + '</span><span class="text-[10px] font-semibold text-white/70">' + votesLabel(i) + '</span>';
 
       const voted = !!state.voted[c.id];
       els.dlBtnGuilty.disabled = voted;
@@ -1461,6 +1922,71 @@
       els.dlBtnGuilty.classList.toggle('opacity-60', voted);
       els.dlBtnInno.classList.toggle('opacity-60', voted);
       els.dlVotedNote.classList.toggle('hidden', !voted);
+    }
+
+    function updateTranslateButton() {
+      const row = document.getElementById('dl-translate-row');
+      const btn = document.getElementById('dl-translate-btn');
+      if (!row || !btn || !state.openCaseId) return;
+      const c = byId(state.openCaseId);
+      if (!c) return;
+      const src = c.lang || 'fr';
+      const can = src !== state.lang && state.mode === 'remote';
+      row.classList.toggle('hidden', !can && !state.detailTranslated);
+      if (state.detailTranslated) {
+        btn.textContent = t('detail.show_original');
+        btn.onclick = restoreOriginal;
+        btn.disabled = false;
+      } else {
+        btn.textContent = t('detail.translate');
+        btn.onclick = translateCurrent;
+        btn.disabled = !can;
+      }
+    }
+
+    async function translateCurrent() {
+      const id = state.openCaseId;
+      const c = byId(id);
+      if (!c || state.mode !== 'remote') return;
+      if (!state.detailSource) state.detailSource = snapshotCase(c);
+      const btn = document.getElementById('dl-translate-btn');
+      if (btn) { btn.disabled = true; btn.textContent = t('detail.translating'); }
+      try {
+        const res = await fetchJson('/api/cases/' + encodeURIComponent(id) + '/translation?lang=' + encodeURIComponent(state.lang));
+        state.detailShown = { text: res.text, title: res.title, verdict: res.verdict };
+        state.detailTranslated = !!res.translated;
+        renderDetailBody(state.detailShown);
+        updateTranslateButton();
+      } catch (err) {
+        toast('⚠️ ' + (err.message || t('toast.tr_failed')));
+        updateTranslateButton();
+      }
+    }
+
+    function restoreOriginal() {
+      if (!state.detailSource) return;
+      state.detailShown = state.detailSource;
+      state.detailTranslated = false;
+      renderDetailBody(state.detailShown);
+      updateTranslateButton();
+    }
+
+    function snapshotCase(c) {
+      return {
+        text: c.text,
+        title: c.title,
+        verdict: { comment: c.verdict.comment, crime: c.verdict.crime, sentence: c.verdict.sentence },
+      };
+    }
+
+    /* Affiche un contenu { text, verdict } dans l'overlay de détail. */
+    function renderDetailBody(o) {
+      const src = o || state.detailShown;
+      if (!src) return;
+      els.dlText.textContent = src.text;
+      els.dlComment.textContent = src.verdict.comment;
+      els.dlCrime.textContent = src.verdict.crime;
+      els.dlSentence.innerHTML = '“ <em>' + esc(src.verdict.sentence) + '</em> ”';
     }
 
     function voteFromDetail(side) {
@@ -1471,6 +1997,9 @@
        13. RÉACTIONS + COMMENTAIRES
     --------------------------------------------------------------------- */
     const REACT_EMOJIS = ['👍', '😂', '😱', '❤️'];
+
+    const KIND_WON = { guilty: '🥇 Coupable', innocent: '👑 Innocent' };
+    const KIND_LOST = { guilty: '😬 Coupable (rejeté)', innocent: '🕊️ Innocent (rejeté)' };
 
     function renderReactions(id, data) {
       data = data || { counts: {}, comments: [] };
@@ -1485,18 +2014,18 @@
       if (els.threadInput) els.threadInput.classList.toggle('hidden', !canComment);
       if (els.threadLogin) els.threadLogin.classList.toggle('hidden', canComment);
       const n = (data.comments || []).length;
-      if (els.threadCount) els.threadCount.textContent = n ? n + ' avis' : '';
+      if (els.threadCount) els.threadCount.textContent = n ? t('thread.count', { n }) : '';
 
       els.dlComments.innerHTML = (data.comments && data.comments.length)
         ? data.comments.map((c) => `
             <div class="rounded-xl bg-white/[0.04] px-3 py-2 text-xs text-white/70">
               <div class="mb-0.5 flex items-center gap-2">
-                <span class="font-semibold text-pink2/90">${esc(c.author || 'Anonyme')}</span>
+                <span class="font-semibold text-pink2/90">${esc(displayAuthor(c.author))}</span>
                 <span class="text-[10px] text-white/30">${esc(timeLabel(c))}</span>
               </div>
               <p class="leading-relaxed">${esc(c.comment)}</p>
             </div>`).join('')
-        : '<p class="text-[11px] text-white/30">Pas encore d’avis. Le silence est une forme de poésie — ou de lâcheté.</p>';
+        : '<p class="text-[11px] text-white/30">' + t('thread.empty') + '</p>';
     }
 
     async function react(id, emoji) {
@@ -1514,7 +2043,7 @@
           state.reactions[id] = res.reactions;
           renderReactions(id, res.reactions);
         } catch (_) {
-          toast('⚠️ Réaction non synchronisée (hors-ligne).');
+          toast('⚠️ ' + t('toast.react_offline'));
         }
       } else {
         // mode démo : réaction en mémoire
@@ -1540,9 +2069,9 @@
           state.reactions[id] = res.reactions;
           renderReactions(id, res.reactions);
           els.commentInput.value = '';
-          toast('💬 Avis publié sur le fil — signé ' + state.user.name + '.');
+          toast('💬 ' + t('toast.comment', { name: state.user.name }));
         } catch (err) {
-          toast('⚠️ ' + (err && err.message ? err.message : 'Impossible d’enregistrer (hors-ligne).'));
+          toast('⚠️ ' + (err && err.message ? err.message : t('toast.comment_fail')));
         }
       } else {
         const d = state.reactions[id] || { counts: {}, comments: [] };
@@ -1566,28 +2095,32 @@
       const c = byId(state.openCaseId);
       if (!c) return;
       const url = shareUrl(c.id);
-      const headline = c.title
-        ? c.title
-        : 'Un crime du quotidien jugé par la communauté';
-      const shareText = `⚖️ ${headline}\n« ${abbreviate(c.text, 120)} »\n\n☠️ Sentence : ${c.verdict.sentence}\n🗳️ ${pctGuilty(c.guilty, c.innocent)}% Coupable\n\n${url}`;
+      const headline = c.title || t('share.headline');
+      const shareText = t('share.text', {
+        headline,
+        text: abbreviate(c.text, 120),
+        sentence: c.verdict.sentence,
+        pct: pctGuilty(c.guilty, c.innocent),
+        url,
+      });
 
       if (state.mode === 'remote') {
         fetchJson('/api/cases/' + encodeURIComponent(c.id) + '/share', { method: 'POST', body: '{}' })
           .then(() => {
             c.share_count = Number(c.share_count || 0) + 1;
-            els.dlShares.textContent = '📤 ' + c.share_count.toLocaleString('fr-FR');
+            els.dlShares.textContent = '📤 ' + c.share_count.toLocaleString(state.lang === 'fr' ? 'fr-FR' : 'en-US');
           })
           .catch(() => {});
       }
 
       if (navigator.share) {
         navigator.share({ title: 'The Last Vibe', text: shareText, url })
-          .then(() => toast('📤 Verdict partagé !'))
+          .then(() => toast('📤 ' + t('toast.shared')))
           .catch(() => {});
       } else {
         navigator.clipboard?.writeText(shareText)
-          .then(() => toast('📋 Lien + verdict copiés (partagez-le !)'))
-          .catch(() => toast('Copie impossible 😢' + (state.mode === 'local' ? ' (ouvrez via le serveur pour un lien social).' : '')));
+          .then(() => toast('📋 ' + t('toast.copied')))
+          .catch(() => toast('😢 ' + t('toast.copy_fail') + (state.mode === 'local' ? ' ' + t('share.copy_hint') : '')));
       }
     }
 
@@ -1597,29 +2130,21 @@
       if (state.mode === 'remote') {
         try {
           await fetchJson('/api/cases/' + encodeURIComponent(id) + '/flag', { method: 'POST', body: '{}' });
-          toast('🚩 Signalé. Un greffier va… enfin, quelqu’un va regarder.');
-        } catch (_) { toast('⚠️ Signalement impossible (hors-ligne).'); }
+          toast('🚩 ' + t('toast.flagged'));
+        } catch (_) { toast('⚠️ ' + t('toast.flag_offline')); }
       } else {
-        toast('🚩 Signalé (en local, personne ne regarde vraiment).');
+        toast('🚩 ' + t('toast.flagged_local'));
       }
     }
 
     /* ---------------------------------------------------------------------
        15. SOUMISSION — simulation instantanée de l'IA
     --------------------------------------------------------------------- */
-    const JUDGE_PHASES = [
-      'Ouverture du dossier…',
-      'Interrogatoire des témoins (il n’y a personne)…',
-      'Consultation des jurisprudences absurdes…',
-      'Rédaction de la sentence au feutre doré…',
-      'Signature. Le tribunal savoure.',
-    ];
-
     function submitCase(e) {
       e.preventDefault();
       const text = els.caseInput.value.trim();
       if (text.length < 12) {
-        toast('⚠️ Votre crime manque de détails (12 caractères minimum).');
+        toast('⚠️ ' + t('toast.too_short'));
         els.caseInput.focus();
         return;
       }
@@ -1629,10 +2154,11 @@
       document.body.style.overflow = 'hidden';
 
       let step = 0;
-      els.judgePhase.textContent = JUDGE_PHASES[0];
+      const phases = I18N[state.lang]['judge.phases'];
+      els.judgePhase.textContent = phases[0];
       const timer = setInterval(() => {
         step += 1;
-        if (step < JUDGE_PHASES.length) els.judgePhase.textContent = JUDGE_PHASES[step];
+        if (step < phases.length) els.judgePhase.textContent = phases[step];
         else { clearInterval(timer); finalizeSubmission(text); }
       }, 640);
     }
@@ -1645,7 +2171,7 @@
         try {
           const res = await fetchJson('/api/cases', {
             method: 'POST',
-            body: JSON.stringify({ text, anonymous }),
+            body: JSON.stringify({ text, anonymous, ui: state.lang }),
             timeout: 10000,
           });
           c = res.case;
@@ -1658,8 +2184,9 @@
         // verdict local (mode démo)
         c = {
           id: uid(),
-          author: (!anonymous && state.user) ? state.user.name : 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
-          time: 'à l’instant',
+          author: (!anonymous && state.user) ? state.user.name : (state.lang === 'en' ? 'Anonymous #' : 'Anonyme #') + Math.floor(Math.random() * 900 + 100),
+          ago: 0,
+          lang: detectLangLocal(text),
           text,
           title: null,
           guilty: Math.floor(Math.random() * 5),
@@ -1676,7 +2203,7 @@
       updateCharCount();
 
       switchView('tribunal');
-      toast('⚖️ Nouveau cas déposé et jugé. Le verdict est prêt.');
+      toast('⚖️ ' + t('toast.submitted'));
       setTimeout(() => openDetail(c.id), 500);
     }
 
@@ -1695,11 +2222,44 @@
       'Peine : rédiger des excuses DÉTAILLÉES (plus de 60 caractères, avec ponctuation, sans « lol »).',
       'Le tribunal exige une vidéo muette de 15 s, mime théâtral d’excuses, hashtag #jessaiemeux.',
     ];
+    const AI_SENTENCES_EN = [
+      'Sentenced to say “do you forgive me?” to the mirror every morning, with operatic intonation, for 10 days.',
+      'Conceptual prison. The cell: one full WhatsApp group, where the offender becomes admin.',
+      'A €100 social fine, payable in free compliments to a stranger every day.',
+      'Banned from the shared fridge for a week. Ration: clear water and good intentions.',
+      'Sentence: write DETAILED apologies (over 60 characters, with punctuation, no “lol”).',
+      'The court demands a 15-second mute video, a theatrical mime of remorse, hashtag #imnotsorry.',
+    ];
+    const AI_CRIMES_EN = [
+      'unauthorized disturbance of the natural order',
+      'aggravated misuse of a shared appliance',
+      'a deliberate breach of roommate protocol',
+      'emotional negligence with sweet aftertaste',
+    ];
+    /* Même heuristique fr/en que le serveur (mode démo, pas d'API). */
+    function detectLangLocal(text) {
+      const w = String(text || '').toLowerCase().match(/[a-zà-ÿ']+/g) || [];
+      let fr = 0, en = 0;
+      for (const x of w) {
+        if (FR_STOP.has(x)) fr++;
+        if (EN_STOP.has(x)) en++;
+      }
+      return en >= 2 && en > fr * 1.15 ? 'en' : 'fr';
+    }
+    const FR_STOP = new Set('je tu il elle on nous vous ils elles le la les un une des du de et est sont pas que qui quoi dans pour avec sur mais plus mon ma mes ton ta tes son sa ses ce cette ces ne au aux en me te se c j l d qu n s t m y'.split(' '));
+    const EN_STOP = new Set('i you he she we they the a an and is are was were not that this these those which what in for with on but more my your his her its our their of to it as at be been have has had do does did will would can could should there from about because so if when'.split(' '));
+
+    /* Verdict de démo : on suit la langue du texte, comme le serveur. */
     function localGenerateVerdict(text) {
+      const en = detectLangLocal(text) === 'en';
+      const sentences = en ? AI_SENTENCES_EN : AI_SENTENCES;
+      const comment = en
+        ? 'The clerk skimmed the file, dignity is safe. “ ' + abbreviate(text, 90) + ' ”. Cross-referenced, corroborated: self-inflicted disorder, properly documented. The Judge signs; nobody understands.'
+        : 'Le greffier a lu le dossier en diagonale, la dignité est sauve. « ' + abbreviate(text, 90) + ' ». On a tout relu, recoupé : c’est du trouble à l’ordre établi par soi-même. Le juge signe, personne ne comprend.';
       return {
-        comment: 'Le greffier a lu le dossier en diagonale, la dignité est sauve. « ' + abbreviate(text, 90) + ' ». On a tout relu, recoupé : c’est du trouble à l’ordre établi par soi-même. Le juge signe, personne ne comprend.',
-        crime: 'trouble à l’ordre établi par soi-même',
-        sentence: AI_SENTENCES[Math.floor(Math.random() * AI_SENTENCES.length)],
+        comment,
+        crime: en ? AI_CRIMES_EN[Math.floor(Math.random() * AI_CRIMES_EN.length)] : 'trouble à l’ordre établi par soi-même',
+        sentence: sentences[Math.floor(Math.random() * sentences.length)],
       };
     }
 
@@ -1735,22 +2295,22 @@
 
     function renderWallData(w) {
       els.wallTop.innerHTML = (w.top || []).map((c, i) => wallRow(c, i, false)).join('')
-        || '<p class="text-sm text-white/35">Pas encore de contribuables. Jugez quelque chose d’abord.</p>';
+        || `<p class="text-sm text-white/35">${t('wall.empty_top')}</p>`;
       els.wallShame.innerHTML = (w.shame || []).map((c, i) => wallRow(c, i, true)).join('')
-        || '<p class="text-sm text-white/35">Pas assez de scandale cette semaine. Le Juge s’ennuie.</p>';
+        || `<p class="text-sm text-white/35">${t('wall.empty_shame')}</p>`;
 
       const contrib = w.contributors || [];
       els.wallContributors.innerHTML = contrib.length
         ? contrib.map((c, i) => contributorRow(c, i)).join('')
-        : '<p class="text-sm text-white/35">Aucun verdict cette semaine. Les jurés font la grève des liesses.</p>';
+        : `<p class="text-sm text-white/35">${t('wall.empty_contrib')}</p>`;
     }
 
     function wallRow(c, i, shame) {
       const g = Number(c.guilty || 0), ino = Number(c.innocent || 0);
       const p = pctGuilty(g, ino);
       const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i] || (i + 1) + '️⃣';
-      const share = shame ? p + '%' : (g + ino).toLocaleString('fr-FR') + ' voix';
-      const label = shame ? 'coupable' : 'jugements';
+      const share = shame ? p + '%' : votesLabel(g + ino);
+      const label = shame ? t('common.guilty').toLowerCase() : t('wall.judgments');
       return `
         <button onclick="openDetail('${c.id}')"
           class="glass animate-up flex w-full items-center gap-4 rounded-2xl p-4 text-left transition hover:border-violet2/40 hover:bg-white/[0.06]"
@@ -1772,13 +2332,13 @@
 
     function contributorRow(c, i) {
       const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][i] || (i + 1) + '️⃣';
-      const name = '⚖️ Justicier #' + abbreviate(c.voter, 10);
+      const name = t('wall.justicer', { id: abbreviate(c.voter, 10) });
       return `
         <div class="glass flex items-center gap-4 rounded-2xl p-4" style="animation-delay:${i * 60}ms">
           <span class="w-8 shrink-0 text-center text-lg">${medal}</span>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-white/90">${esc(name)}</p>
-            <p class="text-[10px] uppercase tracking-wider text-white/35">magistrat de la semaine</p>
+            <p class="text-[10px] uppercase tracking-wider text-white/35">${t('wall.magistrate')}</p>
           </div>
           <p class="shrink-0 text-sm font-bold text-white/90">${c.votes} ⚖️</p>
         </div>`;
@@ -1819,8 +2379,8 @@
           await LN.schedule({
             notifications: [{
               id: 1,
-              title: '⚖️ Le prétoire ouvre !',
-              body: '🍿 Nouveau cas du jour. La communauté attend ton verdict.',
+              title: t('notif.title'),
+              body: t('notif.body'),
               schedule: { on: { hour: 20, minute: 0 }, allowWhileIdle: true },
               sound: null
             }]
@@ -1832,6 +2392,7 @@
     /* Lancement. */
     (async function init() {
       setupVoter();
+      setLang(initialLang());
       const targetId = new URLSearchParams(location.search).get('cas') ||
         (location.hash.startsWith('#cas=') ? location.hash.slice(5) : null);
 
@@ -1845,8 +2406,8 @@
       const qp = new URLSearchParams(location.search);
       const hello = qp.get('bienvenue');
       const authErr = qp.get('auth_error');
-      if (hello) toast('🎭 Bienvenue au prétoire, ' + hello + ' ! Votre compte est rattaché à vos stats.');
-      if (authErr) toast('⚠️ Connexion refusée : ' + authErr);
+      if (hello) toast('🎭 ' + t('toast.welcome', { name: hello }));
+      if (authErr) toast('⚠️ ' + t('toast.auth_denied', { msg: authErr }));
       if (hello || authErr) {
         qp.delete('bienvenue');
         qp.delete('auth_error');

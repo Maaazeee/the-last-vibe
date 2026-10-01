@@ -211,6 +211,18 @@ class PostgresStore {
         last_login  TIMESTAMPTZ NOT NULL DEFAULT now(),
         UNIQUE (provider, provider_id)
       );
+
+      ALTER TABLE cases ADD COLUMN IF NOT EXISTS lang TEXT;
+
+      CREATE TABLE IF NOT EXISTS case_i18n (
+        case_id    TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+        lang       TEXT NOT NULL,
+        title      TEXT,
+        text       TEXT NOT NULL,
+        verdict    JSONB NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (case_id, lang)
+      );
     `);
     await this.seedIfEmpty();
     return this;
@@ -245,14 +257,37 @@ class PostgresStore {
     return totals;
   }
 
-  async createCase({ title, text, verdict, author }) {
+  async createCase({ title, text, verdict, author, lang }) {
     const id = slug(10);
     const { rows } = await this.pool.query(
-      `INSERT INTO cases (id, title, text, verdict, author)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [id, title || null, text, JSON.stringify(verdict), author || 'Anonyme']
+      `INSERT INTO cases (id, title, text, verdict, author, lang)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [id, title || null, text, JSON.stringify(verdict), author || 'Anonyme', lang || 'fr']
     );
     return this.toCase(rows[0]);
+  }
+
+  async getTranslation(caseId, lang) {
+    const { rows } = await this.pool.query(
+      'SELECT title, text, verdict FROM case_i18n WHERE case_id = $1 AND lang = $2',
+      [caseId, lang]
+    );
+    if (!rows[0]) return null;
+    return {
+      title: rows[0].title || null,
+      text: rows[0].text,
+      verdict: typeof rows[0].verdict === 'string' ? JSON.parse(rows[0].verdict) : rows[0].verdict,
+    };
+  }
+
+  async saveTranslation(caseId, lang, { title, text, verdict }) {
+    await this.pool.query(
+      `INSERT INTO case_i18n (case_id, lang, title, text, verdict)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (case_id, lang) DO UPDATE SET
+         title = EXCLUDED.title, text = EXCLUDED.text, verdict = EXCLUDED.verdict`,
+      [caseId, lang, title || null, text, JSON.stringify(verdict)]
+    );
   }
 
   async listCases({ limit = 20, offset = 0 } = {}) {
@@ -610,6 +645,7 @@ class PostgresStore {
       text: r.text,
       verdict: typeof r.verdict === 'string' ? JSON.parse(r.verdict) : r.verdict,
       author: r.author,
+      lang: r.lang || 'fr',
       daily_date: r.daily_date ? dateStr(new Date(r.daily_date)) : null,
       share_count: Number(r.share_count || 0),
       guilty: Number(r.guilty || 0),
@@ -631,6 +667,7 @@ class MemoryStore {
     this.reactions = new Map();  // caseId -> Map(voter -> {emoji, comment, at})
     this.streaks = new Map();    // voter -> {last_vote, count}
     this.users = new Map();      // id -> user
+    this.i18n = new Map();       // `caseId|lang` -> {title, text, verdict}
     this.seq = 1;
   }
 
@@ -639,7 +676,7 @@ class MemoryStore {
       const id = slug(10);
       this.cases.set(id, {
         id, title: s.title, text: s.text,
-        verdict: s.verdict, author: s.author,
+        verdict: s.verdict, author: s.author, lang: 'fr',
         daily_date: null,
         share_count: Math.floor(Math.random() * 30) + 4,
         flagged: false,
@@ -650,14 +687,23 @@ class MemoryStore {
     return this;
   }
 
-  async createCase({ title, text, verdict, author }) {
+  async createCase({ title, text, verdict, author, lang }) {
     const id = slug(10);
     this.cases.set(id, {
       id, title: title || null, text, verdict,
-      author: author || 'Anonyme', daily_date: null,
+      author: author || 'Anonyme', lang: lang || 'fr', daily_date: null,
       share_count: 0, flagged: false, created_at: new Date(),
     });
     return this.getCase(id);
+  }
+
+  async getTranslation(caseId, lang) {
+    const t = this.i18n.get(caseId + '|' + lang);
+    return t ? { title: t.title, text: t.text, verdict: t.verdict } : null;
+  }
+
+  async saveTranslation(caseId, lang, { title, text, verdict }) {
+    this.i18n.set(caseId + '|' + lang, { title: title || null, text, verdict });
   }
 
   async listCases({ limit = 20, offset = 0 } = {}) {
@@ -846,6 +892,9 @@ class MemoryStore {
   async adminDelete(id) {
     this.votes.delete(id);
     this.reactions.delete(id);
+    for (const k of [...this.i18n.keys()]) {
+      if (k.startsWith(id + '|')) this.i18n.delete(k);
+    }
     return this.cases.delete(id);
   }
 
@@ -937,7 +986,7 @@ class MemoryStore {
     const reactionsCount = (this.reactions.get(c.id) || new Map()).size;
     return {
       id: c.id, title: c.title, text: c.text, verdict: c.verdict,
-      author: c.author, daily_date: c.daily_date,
+      author: c.author, lang: c.lang || 'fr', daily_date: c.daily_date,
       share_count: c.share_count,
       guilty, innocent,
       reactions_count: reactionsCount,

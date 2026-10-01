@@ -75,30 +75,181 @@ const AI_SENTENCES = [
   'Exil doux dans la cave à buanderies pendant 48 h, avec pour seul divertissement le bruit de la machine.',
 ];
 
+const AI_OPENERS_EN = [
+  'After long and very careful deliberation…',
+  'The Supreme Judge was pulled from a nap for this. Do tell…',
+  'The clerk skim-read the file; dignity remains intact.',
+  'Extraordinary session open. The courtroom holds its breath (and its phone).',
+  'The court, dazzled by such audacity, finally consents to rule.',
+];
+
+const AI_GEARS_EN = [
+  'The act, neatly filed under serial offences, qualifies as ',
+  'We cross-checked against the case law of platitudes: this is ',
+  'The clerk’s instinct points, without hesitation, to ',
+  'Filed, not without humour, in the category of ',
+  'The dossier smells lived-in. The court shelves it as ',
+];
+
+const AI_CRIMES_EN = [
+  'disturbing the order one established oneself',
+  'breaking and entering into common sense',
+  'an assault on digital sincerity',
+  'a sprouting pact with the fridge lid',
+  'a minor relational heresy',
+  'complicity in organised clumsiness',
+  'administrative ignominy with premeditation',
+  'outraging common logic',
+  'hit-and-run before one’s responsibilities',
+  'gross negligence against the collective',
+];
+
+const AI_SENTENCES_EN = [
+  'Sentenced to say “you forgive me?” every morning to the mirror, with lyrical intonation, for 10 days.',
+  'Prison… conceptual. The cell: a full WhatsApp group where the guilty party becomes admin.',
+  'A €100 social fine, payable in free compliments to a stranger each day.',
+  'Banned from opening the shared fridge for a week. Ration: clear water and good feelings.',
+  'Penalty: write DETAILED apologies (over 60 characters, with punctuation, no “lol”).',
+  'Two mandatory Sundays visiting the person you ignored. Kisses included, emotion not guaranteed.',
+  'The court demands a 15-second silent video, a theatrical mime of apology, hashtag #itryharder.',
+  'Community service: hold the office front door for 3 days, with a believable smile.',
+  'Confiscation of the “last slice of the fridge” privilege for life. The slices return to the people.',
+  'Mild exile to the laundry basement for 48 h, with only the washing machine for entertainment.',
+];
+
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const abbreviate = (t, n) => (t.length > n ? t.slice(0, n - 1).trim() + '…' : t);
 
-function generateVerdict(text) {
+function generateVerdict(text, lang) {
+  const b = lang === 'en'
+    ? { openers: AI_OPENERS_EN, gears: AI_GEARS_EN, crimes: AI_CRIMES_EN, sentences: AI_SENTENCES_EN }
+    : { openers: AI_OPENERS, gears: AI_GEARS, crimes: AI_CRIMES, sentences: AI_SENTENCES };
   const short = abbreviate(text, 90);
-  const comment =
-    pick(AI_OPENERS) + ' ' +
-    '« ' + short + ' ». ' +
-    'Soumis à la sagesse souveraine du Tribunal, l’affaire mérite la gravure : ' +
-    pick(AI_GEARS) + pick(AI_CRIMES) + '. ' +
-    'Le juge signe, le greffier applaudit, personne ne comprend la procédure.';
+  const comment = lang === 'en'
+    ? pick(b.openers) + ' ' +
+      '“' + short + '”. ' +
+      'Submitted to the sovereign wisdom of the Court, the matter deserves to be engraved: ' +
+      pick(b.gears) + pick(b.crimes) + '. ' +
+      'The judge signs, the clerk applauds, nobody understands the procedure.'
+    : pick(b.openers) + ' ' +
+      '« ' + short + ' ». ' +
+      'Soumis à la sagesse souveraine du Tribunal, l’affaire mérite la gravure : ' +
+      pick(b.gears) + pick(b.crimes) + '. ' +
+      'Le juge signe, le greffier applaudit, personne ne comprend la procédure.';
   return {
     comment,
-    crime: pick(AI_CRIMES),
-    sentence: pick(AI_SENTENCES),
+    crime: pick(b.crimes),
+    sentence: pick(b.sentences),
   };
 }
 
 /* Génère un titre éditorial accrocheur à partir du texte du cas. */
-function generateTitle(text) {
+const TITLE_DANGLING = new Set(['à', 'de', 'du', 'des', 'la', 'le', 'les', 'un', 'une', 'et', 'en', 'sur', 'par', 'pour', 'avec', 'dans', 'a', 'an', 'and', 'of', 'to', 'in', 'on', 'for', 'with', 'at', 'my', 'the', 'is', 'was', 'that']);
+function generateTitle(text, lang) {
   const clean = text.replace(/\s+/g, ' ').trim().replace(/^["«“]+|["»”]+$/g, '');
   const words = clean.split(' ');
-  const head = words.slice(0, 7).join(' ');
-  return 'L’affaire du ' + abbreviate(head, 52).toLowerCase().replace(/[.!?]+$/, '');
+  const first = (words[0] || '').toLowerCase();
+  let prefix = lang === 'en' ? 'The case of the ' : 'L’affaire : ';
+  // Une ouverture à sujet ("J'ai mangé…", "I parked…") donnerait un titre
+  // nominal bancal : on la transforme en subordonnée ("Quand j'ai mangé…").
+  const isSubjectStart = lang === 'en'
+    ? /^(i|i'm|i've|my|we|our|he|she|they|you)\b/i.test(first) || /^(i|we|he|she|they|you)'/i.test(first)
+    : /^(je|j['’]|tu|il|elle|on|nous|vous|ils|elles|mon|ma|mes|ton|ta|tes|notre|nos|votre|vos)\b/i.test(first);
+  let body = words.slice(0, 7).join(' ');
+  if (isSubjectStart) {
+    prefix = lang === 'en' ? 'When ' : 'Quand ';
+    if (first !== 'i' && first !== 'je' && first !== 'j') body = body[0].toLowerCase() + body.slice(1);
+  } else if (lang === 'en') {
+    // "The office microwave…" ne doit pas devenir "the case of the The office…"
+    body = body.replace(/^(the|a|an)\s+/i, '');
+  } else if (/^(le|la|les|l['’]|un|une|des)\s/i.test(body)) {
+    // L'article reste dans le corps : le genre est inconnu, donc on prend un
+    // préfixe neutre plutôt que "L'affaire du" (qui donnerait "du machine").
+    prefix = 'L’affaire : ';
+    body = body[0].toLowerCase() + body.slice(1);
+  } else if (/^[A-ZÀ-Þ][a-zà-ÿ]+\s/.test(body)) {
+    // début par un nom propre : on garde la majuscule
+  } else {
+    body = body.toLowerCase();
+  }
+  let out = abbreviate(body, 52).replace(/[.!?]+$/, '');
+  // on évite un titre qui s'interrompt sur un mot de liaison
+  const cut = out.split(' ');
+  if (cut.length > 2 && TITLE_DANGLING.has(cut[cut.length - 1].toLowerCase())) out = cut.slice(0, -1).join(' ');
+  return prefix + out;
+}
+
+/* ---------------------------------------------------------------------
+   LANGUE & TRADUCTION
+   Le Tribunal parle français ; l'anglais est proposé aux visiteurs non
+   francophones. Aucune clé API : Google Translate (endpoint public) avec
+   repli MyMemory. Le résultat est conservé en base (table case_i18n) pour
+   ne traduire chaque affaire qu'une seule fois.
+--------------------------------------------------------------------- */
+const SUPPORTED_LANGS = ['fr', 'en'];
+
+const FR_WORDS = new Set(['je','tu','il','elle','on','nous','vous','ils','elles','le','la','les','un','une','des','du','de','et','est','sont','pas','que','qui','quoi','dans','pour','avec','sur','mais','plus','mon','ma','mes','ton','ta','tes','son','sa','ses','ce','cette','ces','ne','au','aux','en','me','te','se','c','j','l','d','qu','n','s','t','m','y']);
+const EN_WORDS = new Set(['i','you','he','she','we','they','the','a','an','and','is','are','was','were','not','that','this','these','those','which','what','in','for','with','on','but','more','my','your','his','her','its','our','their','of','to','it','as','at','be','been','have','has','had','do','does','did','will','would','can','could','should','there','from','about','because','so','if','when']);
+
+/* Détection grossière fr/en par comptage de mots-outils. Sans dépendance
+   (franc est ESM-only). Retourne 'fr' quand aucun indice n'est trouvé. */
+function detectLang(text) {
+  const words = String(text || '').toLowerCase().match(/[a-zà-ÿ']+/g) || [];
+  let fr = 0, en = 0;
+  for (const w of words) {
+    if (FR_WORDS.has(w)) fr++;
+    if (EN_WORDS.has(w)) en++;
+  }
+  if (en >= 2 && en > fr * 1.15) return 'en';
+  return 'fr';
+}
+
+async function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Mozilla/5.0 (TLV)', Accept: 'application/json' } });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function googleTranslate(text, target, source) {
+  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&dt=t'
+    + '&sl=' + encodeURIComponent(source || 'auto')
+    + '&tl=' + encodeURIComponent(target)
+    + '&q=' + encodeURIComponent(text);
+  const res = await fetchWithTimeout(url, 8000);
+  if (!res.ok) throw new Error('google ' + res.status);
+  const data = await res.json();
+  const out = (data[0] || []).map((seg) => (seg && seg[0]) || '').join('');
+  if (!out.trim()) throw new Error('google vide');
+  return out;
+}
+
+async function mymemoryTranslate(text, target, source) {
+  const src = source && source !== 'auto' ? source : 'fr';
+  const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text)
+    + '&langpair=' + encodeURIComponent(src + '|' + target);
+  const res = await fetchWithTimeout(url, 8000);
+  if (!res.ok) throw new Error('mymemory ' + res.status);
+  const data = await res.json();
+  const out = data && data.responseData && data.responseData.translatedText;
+  if (!out || !out.trim()) throw new Error('mymemory vide');
+  return out;
+}
+
+async function translateText(text, target, source) {
+  if (!text || !String(text).trim()) return text || '';
+  try { return await googleTranslate(text, target, source); }
+  catch { return await mymemoryTranslate(text, target, source); }
+}
+
+/* Traduit un champ sans faire échouer tout le reste (repli : l'original). */
+async function translateField(text, target, source) {
+  if (!text || !String(text).trim()) return { value: text || null, ok: true };
+  try { return { value: await translateText(text, target, source), ok: true }; }
+  catch { return { value: text, ok: false }; }
 }
 
 /* ---------------------------------------------------------------------
@@ -400,6 +551,18 @@ function rateLimitCase(req) {
   return null;
 }
 
+/* Anti-abus traduction : max 60 demandes / heure / IP. */
+const trLog = new Map();
+function rateLimitTranslate(req) {
+  const key = req.ip || 'local';
+  const now = Date.now();
+  const arr = (trLog.get(key) || []).filter((t) => now - t < 3600000);
+  trLog.set(key, arr);
+  if (arr.length >= 60) return 'Trop de traductions demandées. Réessayez plus tard.';
+  arr.push(now);
+  return null;
+}
+
 /* ---------------------------------------------------------------------
    TEMPS RÉEL — flux SSE (votes, nouveaux cas)
 --------------------------------------------------------------------- */
@@ -467,6 +630,42 @@ app.get('/api/cases/:id', async (req, res) => {
   }
 });
 
+/* Traduction d'un cas à la demande (mise en cache en base). */
+app.get('/api/cases/:id/translation', async (req, res) => {
+  const target = String(req.query.lang || '').toLowerCase();
+  if (!SUPPORTED_LANGS.includes(target)) {
+    return res.status(400).json({ error: 'Langue non prise en charge.' });
+  }
+  const blocked = rateLimitTranslate(req);
+  if (blocked) return res.status(429).json({ error: blocked });
+  try {
+    const c = await store.getCase(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Cas introuvable' });
+    const source = c.lang || 'fr';
+    if (source === target) {
+      return res.json({ lang: target, source, title: c.title, text: c.text, verdict: c.verdict, translated: false });
+    }
+    const cached = await store.getTranslation(c.id, target);
+    if (cached) {
+      return res.json({ lang: target, source, ...cached, translated: true, cached: true });
+    }
+    const v = c.verdict || {};
+    const [title, text, comment, crime, sentence] = await Promise.all([
+      translateField(c.title, target, source),
+      translateField(c.text, target, source),
+      translateField(v.comment, target, source),
+      translateField(v.crime, target, source),
+      translateField(v.sentence, target, source),
+    ]);
+    if (!text.ok) throw new Error('traduction indisponible');
+    const payload = { title: title.value, text: text.value, verdict: { ...v, comment: comment.value, crime: crime.value, sentence: sentence.value } };
+    await store.saveTranslation(c.id, target, payload);
+    res.json({ lang: target, source, ...payload, translated: true, cached: false });
+  } catch (err) {
+    res.status(502).json({ error: 'Traduction indisponible pour le moment.' });
+  }
+});
+
 /* Soumission d'un cas + verdict simulé immédiatement. */
 app.post('/api/cases', async (req, res) => {
   const blocked = rateLimitCase(req);
@@ -485,13 +684,18 @@ app.post('/api/cases', async (req, res) => {
     // décochée ET qu'une session de compte est présente (jamais de pseudo
     // accepté côté client).
     const wantName = (req.body && req.body.anonymous === false) && req.tlvUser && req.tlvUser.name;
+    const lang = detectLang(text);
+    // le pseudo anonyme suit la langue de l'interface (Accept-Language ou body.ui)
+    const uiLang = String((req.body && req.body.ui) || '').toLowerCase()
+      || String(req.headers['accept-language'] || '').toLowerCase().slice(0, 2);
     const c = await store.createCase({
-      title: generateTitle(text),
+      title: generateTitle(text, lang),
       text,
-      verdict: generateVerdict(text),
+      verdict: generateVerdict(text, lang),
+      lang,
       author: wantName
         ? String(req.tlvUser.name).slice(0, 40)
-        : 'Anonyme #' + Math.floor(Math.random() * 900 + 100),
+        : (uiLang.startsWith('en') ? 'Anonymous #' : 'Anonyme #') + Math.floor(Math.random() * 900 + 100),
     });
     broadcast({ type: 'newcase', id: c.id });
     res.status(201).json({ case: c });
