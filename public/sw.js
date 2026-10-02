@@ -54,9 +54,26 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;   // CDN/tailwind : pas de cache
+
+  // Données vivantes : jamais de cache, on sert une réponse "offline" JSON
+  // si le réseau échoue pour que le front bascule en mode local.
   if (isApiLike(url)) {
-  // Navigation : réseau d'abord, cache en repli (offline). C'est ce qui
-  // rend un déploiement visible dès le premier rechargement.
+    event.respondWith(
+      fetch(req).then((res) => res).catch(() => {
+        if (url.pathname.startsWith('/api/')) {
+          return new Response(JSON.stringify({ offline: true }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        return Response.error();
+      })
+    );
+    return;
+  }
+
+  // Navigation : réseau d'abord, cache en repli (offline). C'est ce qui rend
+  // un déploiement visible dès le premier rechargement.
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
@@ -71,20 +88,6 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Reste du shell : stale-while-revalidate (réponse immédiate, MAJ en fond).
-  event.respondWith(
-      fetch(req).then((res) => res).catch(() => {
-        if (url.pathname.startsWith('/api/')) {
-          return new Response(JSON.stringify({ offline: true }), {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-        return Response.error();
-      })
-    );
-    return;
-  }
-
   event.respondWith(
     (async () => {
       const cached = await caches.match(req);
